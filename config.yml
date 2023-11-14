@@ -7,7 +7,7 @@ model:
   name: 'encoder'
   weights: ''  # path to pretrained network (or none)
   embedding_cfg:
-    num_embeddings: 13  # dict size - should be 12 + padding token for us?
+    num_embeddings: 5  # dict size - should be 4 + padding token when using just RNA inputs
     embedding_dim: 64
   encoder:
     num_layers: 6
