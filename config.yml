@@ -1,0 +1,23 @@
+pretrain: True
+
+data:
+  seq_length: None  # pad to this length
+
+model:
+  name: 'encoder'
+  weights: ''  # path to pretrained network (or none)
+  embedding_cfg:
+    num_embeddings: 13  # dict size - should be 12 + padding token for us?
+    embedding_dim: 64
+  encoder:
+    num_layers: 6
+    layer_cfg:
+      d_model: None  # number of features - embedding dimension!
+      nhead: 8  # tunable
+      dim_feedforward: 1024  # tunable
+      dropout: 0.1  # tunable
+      activation: 'gelu'
+      layer_norm_eps: 1e-5  # default
+      batch_first: True
+      norm_first: True  # ?
+      bias: True
