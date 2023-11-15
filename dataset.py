@@ -51,7 +51,8 @@ class RNAInputDataset(Dataset):
         pad_amount = self.seq_length - len(inp)
         inp += [0 for _ in range(pad_amount)]
 
-        # TODO: POSITIONAL ENCODINGS ??
+        # padding mask
+        pad_mask = inp == 0
 
         # load, one-hot encode secondary structure
         if self.pretrain:
@@ -74,4 +75,4 @@ class RNAInputDataset(Dataset):
             inp = inp.to(self.device)
             label = label.to(self.device)
 
-        return inp, label
+        return inp, label, pad_mask

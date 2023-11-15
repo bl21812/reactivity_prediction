@@ -6,6 +6,7 @@ cfg = yaml.load('config.yml')
 
 # ----- LOAD DATA -----
 pretrain = cfg['pretrain']
+seq_length = cfg['data']['seq_length']
 
 # TODO: DETERMINE max seq length in train & test and set accordingly in cfg
 
@@ -19,6 +20,7 @@ if model_type == 'encoder':
         embedding_cfg=embedding_cfg,
         num_layers=model_cfg['num_layers'], 
         layer_cfg=model_cfg['layer_cfg'],
+        seq_length=seq_length,
         weights=weights, 
     )
 
