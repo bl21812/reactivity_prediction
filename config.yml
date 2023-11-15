@@ -19,5 +19,5 @@ model:
       activation: 'gelu'
       layer_norm_eps: 1e-5  # default
       batch_first: True
-      norm_first: True  # ?
+      norm_first: True  
       bias: True
