@@ -6,14 +6,18 @@ from torch.utils.data import Dataset
 # Dataset that uses only RNA sequence as input
 class RNAInputDataset(Dataset):
 
-    def __init__(self, data_csv, pretrain=False, seq_length=512, device=None):
+    def __init__(self, df, pretrain=False, seq_length=512, device=None):
         '''
-        data_csv should contain secondary structure for pretrain!
+        df should contain secondary structure for pretrain!
         '''
 
         self.device = device if device else 'cpu'
 
-        self.df = pd.read_csv(data_csv)
+        # if pretrain - remove rows without secondary structures
+        if pretrain:
+            df.dropna(subset=['secondary_struct'], inplace=True)
+
+        self.df = df
         self.pretrain = pretrain
         self.seq_length = seq_length
 
