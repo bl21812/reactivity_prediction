@@ -1,6 +1,9 @@
 pretrain: True
 
 data:
+  paths:
+    df: 'data/train.csv'
+    secondary_struct_df: 'data/secondary_struct.csv'
   seq_length: None  # pad to this length
 
 model:
