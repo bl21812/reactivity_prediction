@@ -1,10 +1,13 @@
 pretrain: True
+device: 'cuda:0'
 
 data:
   paths:
     df: 'data/train.csv'
     secondary_struct_df: 'data/secondary_struct.csv'
   seq_length: None  # pad to this length
+  val_prop: 0.1
+  batch_size: 64
 
 model:
   name: 'encoder'
