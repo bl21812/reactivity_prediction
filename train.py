@@ -6,6 +6,8 @@ from torch.utils.data import DataLoader
 
 from models import Encoder
 from dataset import RNAInputDataset, BPPInputDataset
+from models import Encoder, WatsonCrickAttentionLayer
+from dataset import RNAInputDataset
 from utils import load_df_with_secondary_struct
 
 cfg = yaml.load('config.yml')
@@ -41,7 +43,7 @@ if pretrain:
 # train/test splits
 df_train, df_val = train_test_split(df, test_size=val_prop)
 
-# data loaders 
+# data loaders
 ds_train = RNAInputDataset(df_train, pretrain=pretrain, seq_length=seq_length, device=device)
 ds_val = RNAInputDataset(df_val, pretrain=pretrain, seq_length=seq_length, device=device)
 #bpp_train = BPPInputDataset(df_train, bpp_dir=cfg['data']['paths']['bpp_files'])
@@ -60,10 +62,14 @@ embedding_cfg = cfg['model']['embedding_cfg']
 if model_type == 'encoder':
     model = Encoder(
         embedding_cfg=embedding_cfg,
-        num_layers=model_cfg['num_layers'], 
+        num_layers=model_cfg['num_layers'],
         layer_cfg=model_cfg['layer_cfg'],
         seq_length=seq_length,
-        weights=weights, 
+        weights=weights,
     )
+elif model_type == "attention":
+    # TODO: Add score_matrix to Attention Layer
+    model = WatsonCrickAttentionLayer(size=seq_length, score_matrix=None)
+
 
 # ----- TRAIN -----
