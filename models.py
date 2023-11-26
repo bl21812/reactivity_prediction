@@ -5,6 +5,7 @@ from embedding import SinusoidalPositionalEmbedding
 class Encoder(torch.nn.Module):
 
     def __init__(self, num_layers, layer_cfg, output_cfg, finetune_cfg, embedding_cfg, seq_length, weights=None):
+        super(Encoder, self).__init__() 
 
         # Load pretrained
         if weights:
