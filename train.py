@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
-from models import Encoder
+from models import Encoder, WatsonCrickAttentionLayer
 from dataset import RNAInputDataset
 from utils import load_df_with_secondary_struct
 
@@ -58,10 +58,14 @@ embedding_cfg = cfg['model']['embedding_cfg']
 if model_type == 'encoder':
     model = Encoder(
         embedding_cfg=embedding_cfg,
-        num_layers=model_cfg['num_layers'], 
+        num_layers=model_cfg['num_layers'],
         layer_cfg=model_cfg['layer_cfg'],
         seq_length=seq_length,
-        weights=weights, 
+        weights=weights,
     )
+elif model_type == "attention":
+    # TODO: Add score_matrix to Attention Layer
+    model = WatsonCrickAttentionLayer(size=seq_length, score_matrix=None)
+
 
 # ----- TRAIN -----
