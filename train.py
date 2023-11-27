@@ -4,7 +4,6 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
-from models import Encoder
 from dataset import RNAInputDataset, BPPInputDataset
 from models import Encoder, WatsonCrickAttentionLayer
 from dataset import RNAInputDataset
