@@ -5,6 +5,7 @@ data:
   paths:
     df: 'data/train.csv'
     secondary_struct_df: 'data/secondary_struct.csv'
+    bpp_files: 'data/Ribonanza_bpp_files/extra_data/'
   seq_length: None  # pad to this length
   val_prop: 0.1
   batch_size: 64
