@@ -50,7 +50,6 @@ class Encoder(torch.nn.Module):
         x = self.output(x)
         return torch.squeeze(x)
 
-
 class WatsonCrickAttentionLayer(torch.nn.Module):
 
     def __init__(self, size, score_matrix):
