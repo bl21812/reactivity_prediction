@@ -22,6 +22,7 @@ cfg = yaml.load(open('config.yml', 'r'), Loader=yaml.CLoader)
 
 device = cfg['device']
 pretrain = cfg['pretrain']
+experiment = cfg['data']['experiment']
 seq_length = cfg['data']['seq_length']
 val_prop = cfg['data']['val_prop']
 batch_size = cfg['data']['batch_size']
@@ -62,16 +63,17 @@ val_loss = []
 
 print("Loading training dataframe...")
 df_raw = pd.read_csv(cfg['data']['paths']['df'])
+df_exp = df_raw[df_raw['experiment_type']==experiment]
 
 for epoch in range(epochs):
   
     if pretrain:
         print("Loading Secondary Structure for pre-training...")
         secondary_struct_df = pd.read_csv(cfg['data']['paths']['secondary_struct_df'])
-        df, secondary_type = load_df_with_secondary_struct(df_raw, secondary_struct_df)
+        df, secondary_type = load_df_with_secondary_struct(df_exp, secondary_struct_df)
         print(f"Loaded {df.shape[0]} seq with {secondary_type} secondary structure")
     else:
-        df = df_raw
+        df = df_exp
 
     df_train, df_val = train_test_split(df, test_size=val_prop)
 
