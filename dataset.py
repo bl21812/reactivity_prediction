@@ -5,6 +5,7 @@ import os
 import tqdm
 from torch.utils.data import Dataset
 
+
 # Dataset that uses only RNA sequence as input
 class RNAInputDataset(Dataset):
 
@@ -24,31 +25,30 @@ class RNAInputDataset(Dataset):
         self.seq_length = seq_length
 
         self.rna_encode = {
-            'A': 1, 
-            'C': 2, 
-            'U': 3, 
+            'A': 1,
+            'C': 2,
+            'U': 3,
             'G': 4
         }
 
         self.secondary_struct_encode = {
-            '(': 1, 
-            ')': 2, 
+            '(': 1,
+            ')': 2,
             '.': 3
         }
-        
+
         # put reactivities into one column if using them as labels
         if not pretrain:
             sub_df = self.df.filter(like='reactivity')
             reactivity_col = sub_df.apply(
-                lambda row: row.to_list(), 
+                lambda row: row.to_list(),
                 axis=1
             )
             self.df['reactivity'] = reactivity_col
 
-    
     def __len__(self):
         return len(self.df)
-    
+
     def __getitem__(self, idx):
 
         # load, one-hot encode, and pad rna sequence
@@ -82,7 +82,6 @@ class RNAInputDataset(Dataset):
             label = label.to(self.device)
 
         return inp, label, pad_mask
-    
 
 
 class BPPInputDataset(Dataset):
@@ -108,12 +107,14 @@ class BPPInputDataset(Dataset):
         self.seq_length = seq_length
         self.device = device
         self.labels = df.filter(like='reactivity').apply(
-            lambda row: row.to_list(), 
+            lambda row: row.to_list(),
             axis=1
         )
 
         bpp_dict = {}
-        for i in tqdm.tqdm(np.array(os.listdir(self.bpp_dir))[fb_range]):
+        for i in tqdm.tqdm(np.array(os.listdir(self.bpp_dir))[
+                               fb_range if len(os.listdir(self.bpp_dir)) > fb_range[-1] else range(len(
+                                       os.listdir(self.bpp_dir)))]):
             for j in os.listdir(os.path.join(self.bpp_dir, i)):
                 for k in os.listdir(os.path.join(self.bpp_dir, i, j)):
                     for fn in os.listdir(os.path.join(self.bpp_dir, i, j, k)):
@@ -123,10 +124,8 @@ class BPPInputDataset(Dataset):
                             bpp_dict[fn.split(sep='.')[0]] = bpp
         self.bpp_dict = bpp_dict
 
-
     def __len__(self):
         return len(self.bpp_dict.keys())
-    
 
     def __getitem__(self, idx):
         '''
@@ -143,11 +142,11 @@ class BPPInputDataset(Dataset):
         prob = bpp.p.to_numpy()
 
         bpp_matrix = np.identity(self.seq_length)
-        bpp_matrix[base1-1, base2-1] = prob #convert from 1-indexed to 0-indexed system
+        bpp_matrix[base1 - 1, base2 - 1] = prob  # convert from 1-indexed to 0-indexed system
         bpp_matrix = torch.tensor(bpp_matrix)
 
         label = self.labels[idx]
-        label.resize(self.seq_length, refcheck=False) #zero-pad inplace
+        label.resize(self.seq_length, refcheck=False)  # zero-pad inplace
 
         # send to device (copied from RNAInputDataset above)
         if not (self.device == 'cpu'):
