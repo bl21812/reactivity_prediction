@@ -106,7 +106,7 @@ class BPPInputDataset(Dataset):
 
         seq_length: maximum sequence length for the entire dataset. Assuming we want to
         return a bpp matrix with zero-padding for consistent sizings.
- 
+
         '''
 
         self.ids = df.sequence_id
@@ -120,9 +120,13 @@ class BPPInputDataset(Dataset):
         )
 
         bpp_dict = {}
-        for i in tqdm.tqdm(np.array(os.listdir(self.bpp_dir))[
-                               fb_range if len(os.listdir(self.bpp_dir)) > fb_range[-1] else range(len(
-                                       os.listdir(self.bpp_dir)))]):
+        for i in tqdm.tqdm(
+            np.array(os.listdir(self.bpp_dir))[
+                fb_range
+                if len(os.listdir(self.bpp_dir)) > fb_range[-1]
+                else range(len(os.listdir(self.bpp_dir)))
+            ]
+        ):
             for j in os.listdir(os.path.join(self.bpp_dir, i)):
                 for k in os.listdir(os.path.join(self.bpp_dir, i, j)):
                     for fn in os.listdir(os.path.join(self.bpp_dir, i, j, k)):
