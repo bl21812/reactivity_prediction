@@ -3,8 +3,9 @@ import pandas as pd
 import numpy as np
 
 def load_df_with_secondary_struct(df, secondary_struct_df):
+    
     # Hardcoding the list of eligible secondary soures
-    secondary_struct_types = np.array([
+    secondary_type = np.random.choice([
         'eterna_nupack',
         'eterna_eternafold+threshknot',
         'vienna2_mfe', 
@@ -55,12 +56,49 @@ def load_df_with_secondary_struct(df, secondary_struct_df):
 
     secondary_struct = []
     for idx, row in df.iterrows():
-        seq = df['sequence']
+        seq = row['sequence']
         sub_df = secondary_struct_df.loc[secondary_struct_df['sequence'] == seq]
         if len(sub_df) > 0:
-            secondary_struct.append(sub_df.iloc[0][np.random.choice(secondary_struct_types)])
+            secondary_struct.append(sub_df.iloc[0][secondary_type])
         else:
             secondary_struct.append(None)
     df['secondary_struct'] = secondary_struct
 
-    return df
+    return df.dropna(subset=('secondary_struct')), secondary_type
+
+
+def masked_mse(outputs, targets, mask):
+    """
+    computes mse loss.
+    @return: loss (tensor)
+    """
+    mask = ~mask
+    outputs = torch.masked_select(outputs, mask).float()
+    targets = torch.masked_select(targets, mask).float()
+    loss = F.mse_loss(outputs, targets)
+    ###
+    return loss
+
+def train(model, train_loader, loss_fn, optimizer, epoch):
+    """
+    trains a model for one epoch (one pass through the entire training data).
+    @return: final loss (float)
+    """
+    total_loss = 0
+    loss_history = []
+
+    model = model.to(device)
+    model.train()  # Set model in training mode
+    for i, (inputs, targets, mask) in enumerate(train_loader):
+        optimizer.zero_grad()
+        inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
+        outputs = model(inputs, mask)
+        loss = masked_mse(outputs, targets, mask)
+        loss.backward()
+        optimizer.step()
+
+        total_loss += loss.item()
+
+    final_loss = total_loss / len(train_loader)
+    print(f"Epoch {epoch + 1} done. Average train loss = {final_loss:.2f}")
+    return final_loss

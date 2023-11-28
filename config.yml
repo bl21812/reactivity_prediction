@@ -3,10 +3,10 @@ device: 'cuda:0'
 
 data:
   paths:
-    df: 'data/train.csv'
+    df: 'data/secondary_data.csv'
     secondary_struct_df: 'data/secondary_struct.csv'
     bpp_files: 'data/Ribonanza_bpp_files/extra_data/'
-  seq_length: None  # pad to this length
+  seq_length: 512  # pad to this length
   val_prop: 0.1
   batch_size: 64
 
@@ -17,9 +17,10 @@ model:
     num_embeddings: 5  # dict size - should be 4 + padding token when using just RNA inputs
     embedding_dim: 64
   encoder:
-    num_layers: 6
+    num_layers: 8
+    num_frozen_layers: 4 
     layer_cfg:
-      d_model: None  # number of features - embedding dimension!
+      d_model: 64  # number of features - embedding dimension!
       nhead: 8  # tunable
       dim_feedforward: 1024  # tunable
       dropout: 0.1  # tunable
@@ -28,3 +29,7 @@ model:
       batch_first: True
       norm_first: True  
       bias: True
+
+training:
+  epochs: 30
+  lr: 1e-4

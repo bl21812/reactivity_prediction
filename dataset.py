@@ -33,8 +33,10 @@ class RNAInputDataset(Dataset):
 
         self.secondary_struct_encode = {
             '(': 1,
-            ')': 2,
-            '.': 3
+            '[': 2,
+            '.': 3,
+            ')': 4,
+            ']' :5
         }
 
         # put reactivities into one column if using them as labels
@@ -65,7 +67,7 @@ class RNAInputDataset(Dataset):
             label = self.df['secondary_struct'][idx]
             label = [self.secondary_struct_encode[c] for c in label]
 
-        # load, one-hot encode reactivities
+        # load, reactivities
         else:
             label = self.df['reactivity'][idx]
 
@@ -73,7 +75,7 @@ class RNAInputDataset(Dataset):
         label += [0 for _ in range(pad_amount)]
 
         # convert to tensor
-        inp = torch.tensor(inp, dtype=torch.LongTensor)  # LongTensor for Embedding layer
+        inp = torch.tensor(inp, dtype=torch.long)  # LongTensor for Embedding layer
         label = torch.tensor(label)
 
         # send to device
