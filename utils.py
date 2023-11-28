@@ -1,8 +1,27 @@
 import os
 import pandas as pd
 import numpy as np
+import torch
+
+import torch.nn as nn
+import torch.nn.functional as F
 
 def load_df_with_secondary_struct(df, secondary_struct_df):
+    """
+    Adds secondary structure to training df
+
+    df: training dataframe, 'sequence' column used for matching
+
+    secondary_struct_df: concatenated secondary structure datatable
+    (GPN15k, PK50, PK90, R1 combined) with columns for each secondary
+    structure origin.
+
+    secondary_type is randomly sampled from a hard-coded list of 
+    all secondary structures. Note that there are varying amount of
+    empty cells per secondary-structure origin.
+
+    Returns inner-merged df with a random secondary structure type
+    """
     
     # Hardcoding the list of eligible secondary soures
     secondary_type = np.random.choice([
@@ -76,29 +95,53 @@ def masked_mse(outputs, targets, mask):
     outputs = torch.masked_select(outputs, mask).float()
     targets = torch.masked_select(targets, mask).float()
     loss = F.mse_loss(outputs, targets)
-    ###
+
     return loss
 
-def train(model, train_loader, loss_fn, optimizer, epoch):
-    """
-    trains a model for one epoch (one pass through the entire training data).
-    @return: final loss (float)
-    """
-    total_loss = 0
-    loss_history = []
 
+def masked_cross_entropy(outputs, targets, mask):
+    """
+    computes cross entropy loss.
+    @return: loss (tensor)
+    """
+    mask = ~mask
+    outputs = torch.masked_select(outputs, mask).float()
+    targets = torch.masked_select(targets, mask).float()
+    loss = F.cross_entropy(outputs, targets)
+
+    return loss
+
+
+def train(model, data_loader, loss_fn, optimizer, device):
+    
     model = model.to(device)
     model.train()  # Set model in training mode
-    for i, (inputs, targets, mask) in enumerate(train_loader):
+    
+    total_loss = 0
+    for i, (inputs, targets, mask) in enumerate(data_loader):
         optimizer.zero_grad()
         inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
         outputs = model(inputs, mask)
-        loss = masked_mse(outputs, targets, mask)
+        loss = loss_fn(outputs, targets, mask)
         loss.backward()
         optimizer.step()
 
         total_loss += loss.item()
 
-    final_loss = total_loss / len(train_loader)
-    print(f"Epoch {epoch + 1} done. Average train loss = {final_loss:.2f}")
+    final_loss = total_loss / len(data_loader)
+    return final_loss
+
+def test(model, data_loader, loss_fn, device):
+    
+    model = model.to(device)
+
+    total_loss = 0
+    for i, (inputs, targets, mask) in enumerate(data_loader):
+        inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
+        outputs = model(inputs, mask)
+        loss = loss_fn(outputs, targets, mask)
+
+        total_loss += loss.item()
+
+    final_loss = total_loss / len(data_loader)
     return final_loss
