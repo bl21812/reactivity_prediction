@@ -13,6 +13,7 @@ data:
 model:
   name: 'encoder'
   weights: ''  # path to pretrained network (or none)
+  save: None # path to network saving location (or none)
   embedding_cfg:
     num_embeddings: 5  # dict size - should be 4 + padding token when using just RNA inputs
     embedding_dim: 64
