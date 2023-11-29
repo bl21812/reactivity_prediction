@@ -60,7 +60,7 @@ class RNAInputDataset(Dataset):
         inp += [0 for _ in range(pad_amount)]
 
         # padding mask
-        pad_mask = inp == 0
+        pad_mask = [i == 0 for i in inp]
 
         # load, one-hot encode secondary structure
         if self.pretrain:
