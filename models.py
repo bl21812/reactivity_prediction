@@ -38,6 +38,9 @@ class Encoder(torch.nn.Module):
             self.model = torch.nn.TransformerEncoder(encoder_layer=encoder_layer, num_layers=num_layers)
 
         self.output_norm = torch.nn.LayerNorm(layer_cfg['d_model'])
+
+        # TODO: should be like the below for finetune, but not for pretrain
+        # pretrain should have dimensionality of encoding_dim (for dot-bracket one-hot) instead of 1
         self.output = torch.nn.Linear(layer_cfg['d_model'], 1)
 
     def forward(self, x, pad_mask):
