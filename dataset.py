@@ -15,11 +15,6 @@ class RNAInputDataset(Dataset):
         '''
 
         self.device = device if device else 'cpu'
-
-        # if pretrain - remove rows without secondary structures
-        if pretrain:
-            df.dropna(subset=['secondary_struct'], inplace=True)
-
         self.df = df
         self.pretrain = pretrain
         self.seq_length = seq_length
@@ -54,7 +49,7 @@ class RNAInputDataset(Dataset):
     def __getitem__(self, idx):
 
         # load, one-hot encode, and pad rna sequence
-        inp = self.df['sequence'][idx]
+        inp = self.df['sequence'].iloc[idx]
         inp = [self.rna_encode[c] for c in inp]
         pad_amount = self.seq_length - len(inp)
         inp += [0 for _ in range(pad_amount)]

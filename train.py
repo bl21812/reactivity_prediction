@@ -68,7 +68,7 @@ df_exp = df_raw[df_raw['experiment_type']==experiment]
 if pretrain:
     print("Loading Secondary Structure for pre-training...")
     secondary_struct_df = pd.read_csv(cfg['data']['paths']['secondary_struct_df'])
-    df = load_df_with_secondary_struct(df_exp, secondary_struct_df)
+    df = load_df_with_secondary_struct(df_exp, secondary_struct_df) #optional = sample_size
     print(f"Loaded {df.shape[0]} sequences with secondary structure")
 else:
     df = df_exp
@@ -102,8 +102,6 @@ for epoch in range(epochs):
     val_loss.append(avg_val_loss)
 
     print(f"Epoch {epoch + 1}:".ljust(16), f"Train Loss: {avg_train_loss:.4f}".rjust(20), f"Validation Loss: {avg_val_loss:.4f}".rjust(20))
-
-
 
 # ----- SAVE MODEL -----
     
