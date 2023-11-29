@@ -55,7 +55,7 @@ class RNAInputDataset(Dataset):
         inp += [0 for _ in range(pad_amount)]
 
         # padding mask
-        pad_mask = inp == 0
+        pad_mask = [i == 0 for i in inp]
 
         # load, one-hot encode secondary structure
         if self.pretrain:
@@ -72,6 +72,7 @@ class RNAInputDataset(Dataset):
         # convert to tensor
         inp = torch.tensor(inp, dtype=torch.long)  # LongTensor for Embedding layer
         label = torch.tensor(label)
+        pad_mask = torch.tensor(pad_mask)
 
         # send to device
         if not (self.device == 'cpu'):

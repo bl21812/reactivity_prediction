@@ -85,7 +85,7 @@ print("Training model...")
 for epoch in range(epochs):    
     avg_train_loss = utils.train(
         model=model, 
-        data_loader=ds_train,
+        data_loader=train_loader,
         loss_fn=loss_fn,
         optimizer=optimizer,
         device=device
@@ -93,7 +93,7 @@ for epoch in range(epochs):
 
     avg_val_loss = utils.test(
         model=model, 
-        data_loader=ds_train,
+        data_loader=val_loader,
         loss_fn=loss_fn,
         device=device
     )
