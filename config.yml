@@ -27,7 +27,7 @@ model:
       dim_feedforward: 1024  # tunable
       dropout: 0.1  # tunable
       activation: 'gelu'
-      layer_norm_eps: 1e-5  # default
+      layer_norm_eps: 0.00001  # default
       batch_first: True
       norm_first: True  
       bias: True
