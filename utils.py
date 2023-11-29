@@ -116,9 +116,12 @@ def train(model, data_loader, loss_fn, optimizer, device):
     
     model = model.to(device)
     model.train()  # Set model in training mode
+
+    train_iter = iter(data_loader)
     
     total_loss = 0
-    for i, (inputs, targets, mask) in enumerate(data_loader):
+    for i in tqdm(range(len(data_loader))):
+        (inputs, targets, mask) = next(train_iter)
         optimizer.zero_grad()
         inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
         outputs = model(inputs, mask)
@@ -135,8 +138,11 @@ def test(model, data_loader, loss_fn, device):
     
     model = model.to(device)
 
+    test_iter = iter(data_loader)
+
     total_loss = 0
-    for i, (inputs, targets, mask) in enumerate(data_loader):
+    for i in tqdm(range(len(data_loader))):
+        (inputs, targets, mask) = next(test_iter)
         inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
         outputs = model(inputs, mask)
         loss = loss_fn(outputs, targets, mask)
