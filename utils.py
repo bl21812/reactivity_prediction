@@ -2,13 +2,13 @@ import os
 import pandas as pd
 import numpy as np
 import torch
-
 import torch.nn as nn
 import torch.nn.functional as F
+import random
 from tqdm import tqdm
 
 
-def load_df_with_secondary_struct(df, secondary_struct_df):
+def load_df_with_secondary_struct(df, secondary_df, sample_size=46):
     """
     Adds secondary structure to training df
 
@@ -18,13 +18,13 @@ def load_df_with_secondary_struct(df, secondary_struct_df):
     (GPN15k, PK50, PK90, R1 combined) with columns for each secondary
     structure origin.
 
-    All secondary packages are ultimately used. The labels are pivoted
-    into a single secondary_struct column. Empty secondary structures
-    are dropped and the indices are reset.
+    All secondary packages are ultimately used (if sample_size = 46).
+    The labels are pivoted into a single secondary_struct column. 
+    Empty secondary structures are dropped and the indices are reset.
 
     Returns inner-merged df with a random secondary structure type
     """
-    
+
     # Hardcoding the list of eligible secondary soures
     secondary_types = [
         'eterna_nupack',
@@ -75,8 +75,12 @@ def load_df_with_secondary_struct(df, secondary_struct_df):
         'shapify-hfold', 
     ]
 
+    # ability to select only a selection of the secondary types, default is entire list
+    secondary_types_sample = random.sample(secondary_types, sample_size)
+    secondary_types_sample = [col for col in secondary_types if col in secondary_df.columns]
+
     # Unpivot the secondary frame
-    secondary_df = pd.melt(df, id_vars=['sequence'], value_vars=secondary_types, value_name='secondary_struct')
+    secondary_df = pd.melt(df, id_vars=['sequence'], value_vars=secondary_types_sample, value_name='secondary_struct')
     secondary_df = secondary_df.dropna(subset=('secondary_struct'))
 
     # Merge the secondary column
@@ -86,7 +90,6 @@ def load_df_with_secondary_struct(df, secondary_struct_df):
     df = df.dropna(subset=['secondary_struct']).reset_index()
 
     return df
-
 
 def masked_mse(outputs, targets, mask):
     """
