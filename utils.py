@@ -124,6 +124,9 @@ def train(model, data_loader, loss_fn, optimizer, device):
     
     total_loss = 0
     for (inputs, targets, mask) in tqdm(data_loader):
+        print(inputs.size())
+        print(targets.size())
+        print(mask.size())
         optimizer.zero_grad()
         inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
         outputs = model(inputs, mask)
