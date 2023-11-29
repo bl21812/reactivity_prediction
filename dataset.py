@@ -65,6 +65,12 @@ class RNAInputDataset(Dataset):
         if self.pretrain:
             label = self.df['secondary_struct'].iloc[idx]
             label = [self.secondary_struct_encode[c] for c in label]
+            one_hot_label = []
+            for i, idx in enumerate(label):
+                temp = np.zeros(9)
+                temp[idx-1] = 1
+                one_hot_label.append(temp)
+            label = one_hot_label
 
         # load, reactivities
         else:
