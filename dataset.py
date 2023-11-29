@@ -65,19 +65,19 @@ class RNAInputDataset(Dataset):
         if self.pretrain:
             label = self.df['secondary_struct'].iloc[idx]
             label = [self.secondary_struct_encode[c] for c in label]
+            label += [0 for _ in range(pad_amount)]
             one_hot_label = []
             for i, idx in enumerate(label):
                 temp = np.zeros(9)
-                temp[idx-1] = 1
+                if idx > 0:
+                    temp[idx-1] = 1
                 one_hot_label.append(temp)
-            label = one_hot_label
+            label = np.array(one_hot_label)
 
         # load, reactivities
         else:
             label = self.df['reactivity'].iloc[idx]
-
-        # pad label
-        label += [0 for _ in range(pad_amount)]
+            label += [0 for _ in range(pad_amount)]
 
         # convert to tensor
         inp = torch.tensor(inp, dtype=torch.long)  # LongTensor for Embedding layer
