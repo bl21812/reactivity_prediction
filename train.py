@@ -65,25 +65,24 @@ print("Loading training dataframe...")
 df_raw = pd.read_csv(cfg['data']['paths']['df'])
 df_exp = df_raw[df_raw['experiment_type']==experiment]
 
-for epoch in range(epochs):
-  
-    if pretrain:
-        print("Loading Secondary Structure for pre-training...")
-        secondary_struct_df = pd.read_csv(cfg['data']['paths']['secondary_struct_df'])
-        df, secondary_type = load_df_with_secondary_struct(df_exp, secondary_struct_df)
-        print(f"Loaded {df.shape[0]} seq with {secondary_type} secondary structure")
-    else:
-        df = df_exp
+if pretrain:
+    print("Loading Secondary Structure for pre-training...")
+    secondary_struct_df = pd.read_csv(cfg['data']['paths']['secondary_struct_df'])
+    df = load_df_with_secondary_struct(df_exp, secondary_struct_df)
+    print(f"Loaded {df.shape[0]} sequences with secondary structure")
+else:
+    df = df_exp
 
-    df_train, df_val = train_test_split(df, test_size=val_prop)
+df_train, df_val = train_test_split(df, test_size=val_prop)
 
-    print("Loading RNA+Secondary Datasets..." if pretrain else "Loading RNA+Reactivity Datasets...")
-    ds_train = RNAInputDataset(df_train, pretrain=pretrain, seq_length=seq_length, device=device)
-    ds_val = RNAInputDataset(df_val, pretrain=pretrain, seq_length=seq_length, device=device)
-    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=True)
+print("Loading RNA+Secondary Datasets..." if pretrain else "Loading RNA+Reactivity Datasets...")
+ds_train = RNAInputDataset(df_train, pretrain=pretrain, seq_length=seq_length, device=device)
+ds_val = RNAInputDataset(df_val, pretrain=pretrain, seq_length=seq_length, device=device)
+train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
+val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=True)
 
-    print("Training model...")
+print("Training model...")
+for epoch in range(epochs):    
     avg_train_loss = utils.train(
         model=model, 
         data_loader=ds_train,
@@ -102,7 +101,7 @@ for epoch in range(epochs):
     train_loss.append(avg_train_loss)
     val_loss.append(avg_val_loss)
 
-    print(f"Epoch {epoch + 1}:".ljust(16), f"Train Loss: {avg_train_loss:.4f}".rjust(20), f"Validation Loss: {avg_val_loss:.4f}.rjust(20)")
+    print(f"Epoch {epoch + 1}:".ljust(16), f"Train Loss: {avg_train_loss:.4f}".rjust(20), f"Validation Loss: {avg_val_loss:.4f}".rjust(20))
 
 
 

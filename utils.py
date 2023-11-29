@@ -5,8 +5,8 @@ import torch
 
 import torch.nn as nn
 import torch.nn.functional as F
-
 from tqdm import tqdm
+
 
 def load_df_with_secondary_struct(df, secondary_struct_df):
     """
@@ -18,15 +18,15 @@ def load_df_with_secondary_struct(df, secondary_struct_df):
     (GPN15k, PK50, PK90, R1 combined) with columns for each secondary
     structure origin.
 
-    secondary_type is randomly sampled from a hard-coded list of 
-    all secondary structures. Note that there are varying amount of
-    empty cells per secondary-structure origin.
+    All secondary packages are ultimately used. The labels are pivoted
+    into a single secondary_struct column. Empty secondary structures
+    are dropped and the indices are reset.
 
     Returns inner-merged df with a random secondary structure type
     """
     
     # Hardcoding the list of eligible secondary soures
-    secondary_type = np.random.choice([
+    secondary_types = [
         'eterna_nupack',
         'eterna_eternafold+threshknot',
         'vienna2_mfe', 
@@ -73,19 +73,19 @@ def load_df_with_secondary_struct(df, secondary_struct_df):
         'nupack-pk[threshknot]',
         'nupack-pk[hungarian]',
         'shapify-hfold', 
-    ])
+    ]
 
-    secondary_struct = []
-    for idx, row in df.iterrows():
-        seq = row['sequence']
-        sub_df = secondary_struct_df.loc[secondary_struct_df['sequence'] == seq]
-        if len(sub_df) > 0:
-            secondary_struct.append(sub_df.iloc[0][secondary_type])
-        else:
-            secondary_struct.append(None)
-    df['secondary_struct'] = secondary_struct
+    # Unpivot the secondary frame
+    secondary_df = pd.melt(df, id_vars=['sequence'], value_vars=secondary_types, value_name='secondary_struct')
+    secondary_df = secondary_df.dropna(subset=('secondary_struct'))
 
-    return df.dropna(subset=['secondary_struct']), secondary_type
+    # Merge the secondary column
+    df = pd.merge(df, secondary_df, how='left', left_on='sequence', right_on='sequence')
+
+    # Drop empty secondary structures
+    df = df.dropna(subset=['secondary_struct']).reset_index()
+
+    return df
 
 
 def masked_mse(outputs, targets, mask):
