@@ -77,7 +77,7 @@ def load_df_with_secondary_struct(df, secondary_struct_df):
 
     # Unpivot the secondary frame
     secondary_df = pd.melt(df, id_vars=['sequence'], value_vars=secondary_types, value_name='secondary_struct')
-    secondary_df = secondary_df.dropna(subset=('secondary_struct'))
+    secondary_df = secondary_df.dropna(subset=['secondary_struct'])
 
     # Merge the secondary column
     df = pd.merge(df, secondary_df, how='left', left_on='sequence', right_on='sequence')
