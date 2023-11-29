@@ -6,6 +6,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from tqdm import tqdm
+
 def load_df_with_secondary_struct(df, secondary_struct_df):
     """
     Adds secondary structure to training df
