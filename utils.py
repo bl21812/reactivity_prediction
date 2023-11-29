@@ -83,7 +83,7 @@ def load_df_with_secondary_struct(df, secondary_struct_df):
             secondary_struct.append(None)
     df['secondary_struct'] = secondary_struct
 
-    return df.dropna(subset=('secondary_struct')), secondary_type
+    return df.dropna(subset=['secondary_struct']), secondary_type
 
 
 def masked_mse(outputs, targets, mask):
