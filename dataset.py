@@ -29,9 +29,13 @@ class RNAInputDataset(Dataset):
         self.secondary_struct_encode = {
             '(': 1,
             '[': 2,
-            '.': 3,
-            ')': 4,
-            ']' :5
+            '{': 3,
+            '<': 4,
+            '.': 5,
+            ')': 6,
+            ']' :7,
+            '}': 8,
+            '>': 9
         }
 
         # put reactivities into one column if using them as labels
