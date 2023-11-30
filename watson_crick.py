@@ -3,32 +3,32 @@ import torch
 
 import torch.nn as nn
 
-class WatsonCrickAttentionLayer(torch.nn.Module):
+# class WatsonCrickAttentionLayer(torch.nn.Module):
+#     """gurman impl"""
+#     def __init__(self, size, score_matrix):
+#         super(WatsonCrickAttentionLayer, self).__init__()
+#         self.size = size
+#         self.score_matrix = torch.nn.Parameter(score_matrix, requires_grad=False)
 
-    def __init__(self, size, score_matrix):
-        super(WatsonCrickAttentionLayer, self).__init__()
-        self.size = size
-        self.score_matrix = torch.nn.Parameter(score_matrix, requires_grad=False)
+#         # Linear Components
+#         self.q_linear = torch.nn.Linear(size, size)
+#         self.k_linear = torch.nn.Linear(size, size)
+#         self.v_linear = torch.nn.Linear(size, size)
 
-        # Linear Components
-        self.q_linear = torch.nn.Linear(size, size)
-        self.k_linear = torch.nn.Linear(size, size)
-        self.v_linear = torch.nn.Linear(size, size)
+#     def forward(self, x):
+#         # X = (batch_size, self.size)
 
-    def forward(self, x):
-        # X = (batch_size, self.size)
+#         # Apply linear components
+#         q = self.q_linear(x)
+#         k = self.k_linear(x)
+#         v = self.v_linear(x)
 
-        # Apply linear components
-        q = self.q_linear(x)
-        k = self.k_linear(x)
-        v = self.v_linear(x)
+#         # Calculate attention
+#         score_attention = torch.matmul(q, k.transpose(-2, -1))
+#         weights_attention = torch.nn.functional.softmax(score_attention, dim=-1)
 
-        # Calculate attention
-        score_attention = torch.matmul(q, k.transpose(-2, -1))
-        weights_attention = torch.nn.functional.softmax(score_attention, dim=-1)
-
-        # Output block
-        return torch.matmul(weights_attention, v)
+#         # Output block
+#         return torch.matmul(weights_attention, v)
 
 
 def wc_attention(query, key, value, wc_matrix, mask=None, dropout=None, softmax_wc=True):
@@ -154,11 +154,11 @@ class WatsonCrickEncoderLayer(nn.Module):
     def __init__(self, d_model, h, d_ff, dropout):
         super(WatsonCrickEncoderLayer, self).__init__()
         self.self_attn = WatsonCrickMultiHeadedAttention(h, d_model, dropout)
-        self.ff = nn.ModuleList([
+        self.ff = nn.Sequential(
             nn.Linear(d_model, d_ff),
             nn.Linear(d_ff, d_model),
             nn.Dropout(dropout)
-        ])
+        )
 
         self.sublayer = [SublayerConnection(d_model, dropout) for _ in range(2)]
 
