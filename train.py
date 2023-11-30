@@ -106,12 +106,14 @@ for epoch in range(epochs):
 # ----- SAVE MODEL -----
 
 if save:
+
+    save = os.path.join(save, time.strftime("%Y%m%d_%H%M%S"))
     
     if not os.path.exists(save):
         os.makedirs(save)
 
     # save model
-    filename = model_type + '_' + time.strftime("%Y%m%d_%H%M%S") + '.pt'
+    filename = 'model.pt'
     torch.save(model, f=os.path.join(save, filename))
 
     # save plots
