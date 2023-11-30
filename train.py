@@ -104,7 +104,18 @@ for epoch in range(epochs):
     print(f"Epoch {epoch + 1}:".ljust(16), f"Train Loss: {avg_train_loss:.4f}".rjust(20), f"Validation Loss: {avg_val_loss:.4f}".rjust(20))
 
 # ----- SAVE MODEL -----
-    
+
 if save:
+    
+    if not os.path.exists(save):
+        os.makedirs(save)
+
+    # save model
     filename = model_type + '_' + time.strftime("%Y%m%d_%H%M%S") + '.pt'
     torch.save(model, f=os.path.join(save, filename))
+
+    # save plots
+    xs = [i+1 for i in range(epochs)]
+    plt.plot(xs, train_loss, color='b')
+    plt.plot(xs, val_loss, color='r')
+    plt.savefig(os.path.join(save, 'loss.png'))
