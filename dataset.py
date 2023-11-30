@@ -52,7 +52,6 @@ class RNAInputDataset(Dataset):
             if not (len(row['sequence']) == len(row['secondary_struct'])):
                 count += 1
         print(count)
-        exit()
 
     def __len__(self):
         return len(self.df)
