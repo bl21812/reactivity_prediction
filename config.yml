@@ -33,5 +33,5 @@ model:
       bias: True
 
 training:
-  epochs: 0
+  epochs: 2
   lr: 1e-2
