@@ -109,6 +109,10 @@ def masked_cross_entropy(outputs, targets, mask):
     computes cross entropy loss.
     @return: loss (tensor)
     """
+
+    if outputs.dim() > mask.dim():
+        mask = mask.unsqueeze(-1).repeat(1, 1, outputs.size()[-1])
+    
     mask = ~mask
     outputs = torch.masked_select(outputs, mask).float()
     targets = torch.masked_select(targets, mask).float()
