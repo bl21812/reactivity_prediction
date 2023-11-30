@@ -84,8 +84,6 @@ class RNAInputDataset(Dataset):
         label = torch.tensor(label)
         pad_mask = torch.tensor(pad_mask)
 
-        print(inp.size(), label.size())
-
         # send to device
         if not (self.device == 'cpu'):
             inp = inp.to(self.device)
