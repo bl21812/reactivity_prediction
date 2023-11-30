@@ -47,12 +47,6 @@ class RNAInputDataset(Dataset):
             )
             self.df['reactivity'] = reactivity_col
 
-        count = 0
-        for idx, row in self.df.iterrows():
-            if not (len(row['sequence']) == len(row['secondary_struct'])):
-                count += 1
-        print(count)
-
     def __len__(self):
         return len(self.df)
 
@@ -89,6 +83,8 @@ class RNAInputDataset(Dataset):
         inp = torch.tensor(inp, dtype=torch.long)  # LongTensor for Embedding layer
         label = torch.tensor(label)
         pad_mask = torch.tensor(pad_mask)
+
+        print(inp.size(), label.size())
 
         # send to device
         if not (self.device == 'cpu'):
