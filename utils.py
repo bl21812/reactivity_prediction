@@ -90,12 +90,8 @@ def load_df_with_secondary_struct(df, secondary_df, sample_size=46):
     df = df.dropna(subset=['secondary_struct']).reset_index()
 
     # Drop sequences that do not match in length
-    indices = []
-    for idx, row in df.iterrows():
-        if not (len(row['sequence']) == len(row['secondary_struct'])):
-            indices.append(idx)
-    print(f'Dropping {len(indices)} rows due to length mismatch')
-    df = df.drop(indices).reset_index()
+    df = df[df['sequence'].str.len() == df['secondary_struct'].str.len()]
+    df.reset_index(inplace=True)
 
     return df
 
