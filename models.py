@@ -22,8 +22,9 @@ class Encoder(torch.nn.Module):
             self.input_layer_norm.requires_grad = False
 
             # Freeze the first 'num_frozen_layers'
+            param_names = [p[0] for p in self.model.named_parameters()]
             for i, param in enumerate(self.model.parameters()):
-                if i < num_frozen_layers:
+                if any(param_names[i].startswith('model.layers.' + str(x)) for x in range(num_frozen_layers)):
                     param.requires_grad = False
 
         else:
