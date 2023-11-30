@@ -17,14 +17,14 @@ class Encoder(torch.nn.Module):
             self.model = pt_model.model
             self.output_norm = pt_model.output_norm
 
-            # Create a new output layer
-            self.output = torch.nn.Linear(layer_cfg['d_model'], 1)
+            # freeze everything before attention layers
+            self.embedding.requires_grad = False
+            self.input_layer_norm.requires_grad = False
 
             # Freeze the first 'num_frozen_layers'
             for i, param in enumerate(self.model.parameters()):
                 if i < num_frozen_layers:
                     param.requires_grad = False
-
 
         else:
             self.embedding = torch.nn.Embedding(**embedding_cfg)
@@ -37,9 +37,9 @@ class Encoder(torch.nn.Module):
             encoder_layer = torch.nn.TransformerEncoderLayer(**layer_cfg)
             self.model = torch.nn.TransformerEncoder(encoder_layer=encoder_layer, num_layers=num_layers)
 
-        self.output_norm = torch.nn.LayerNorm(layer_cfg['d_model'])
+            self.output_norm = torch.nn.LayerNorm(layer_cfg['d_model'])
 
-        # Labels are one-hot encodings for pretrain, but floats for finetune
+        # Output dense layer - Labels are one-hot encodings for pretrain, but floats for finetune
         output_dim = 1 if weights else 9
         self.output = torch.nn.Linear(layer_cfg['d_model'], output_dim)
 
