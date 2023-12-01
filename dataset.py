@@ -33,7 +33,7 @@ class RNAInputDataset(Dataset):
             '<': 4,
             '.': 5,
             ')': 6,
-            ']' :7,
+            ']': 7,
             '}': 8,
             '>': 9
         }
@@ -41,6 +41,7 @@ class RNAInputDataset(Dataset):
         # put reactivities into one column if using them as labels
         if not pretrain:
             sub_df = self.df.filter(like='reactivity')
+            sub_df.fillna(value=0., inplace=True)  # since some positions have no data
             reactivity_col = sub_df.apply(
                 lambda row: row.to_list(),
                 axis=1
@@ -64,20 +65,21 @@ class RNAInputDataset(Dataset):
         # load, one-hot encode secondary structure
         if self.pretrain:
             label = self.df['secondary_struct'].iloc[idx]
-            label = [self.secondary_struct_encode[c] if (c in self.secondary_struct_encode.keys()) else -1 for c in label]
+            label = [self.secondary_struct_encode[c] if (c in self.secondary_struct_encode.keys()) else -1 for c in
+                     label]
             label += [0 for _ in range(pad_amount)]
             one_hot_label = []
             for i, idx in enumerate(label):
                 temp = np.zeros(9)
                 if idx > 0:
-                    temp[idx-1] = 1
+                    temp[idx - 1] = 1
                 one_hot_label.append(temp)
             label = np.array(one_hot_label)
 
         # load, reactivities
         else:
             label = self.df['reactivity'].iloc[idx]
-            label += [0 for _ in range(pad_amount)]
+            label += [0 for _ in range(len(inp) - len(label))]
 
         # convert to tensor
         inp = torch.tensor(inp, dtype=torch.long)  # LongTensor for Embedding layer
@@ -100,8 +102,8 @@ class BPPInputDataset(Dataset):
 
         df: subset of training data. Only used for id's and reactivity labels
 
-        fb_range: option to limit first-byte range to load. The idea is for efficient 
-        test/train split where we load the first 15/16 portions for train, and remaining 
+        fb_range: option to limit first-byte range to load. The idea is for efficient
+        test/train split where we load the first 15/16 portions for train, and remaining
         1/16 for val (for example). Default is to search all files for df's ids.
 
         seq_length: maximum sequence length for the entire dataset. Assuming we want to
@@ -120,13 +122,9 @@ class BPPInputDataset(Dataset):
         )
 
         bpp_dict = {}
-        for i in tqdm.tqdm(
-            np.array(os.listdir(self.bpp_dir))[
-                fb_range
-                if len(os.listdir(self.bpp_dir)) > fb_range[-1]
-                else range(len(os.listdir(self.bpp_dir)))
-            ]
-        ):
+        for i in tqdm.tqdm(np.array(os.listdir(self.bpp_dir))[
+                               fb_range if len(os.listdir(self.bpp_dir)) > fb_range[-1] else range(len(
+                                   os.listdir(self.bpp_dir)))]):
             for j in os.listdir(os.path.join(self.bpp_dir, i)):
                 for k in os.listdir(os.path.join(self.bpp_dir, i, j)):
                     for fn in os.listdir(os.path.join(self.bpp_dir, i, j, k)):

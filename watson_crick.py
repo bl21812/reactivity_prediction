@@ -11,6 +11,7 @@ def wc_attention(query, key, value, wc_matrix, mask=None, dropout=None, softmax_
     wc_matrix (Tensor): (bs, N, N)
 
     """
+
     d_k = query.size(-1)
 
     scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)
@@ -23,17 +24,18 @@ def wc_attention(query, key, value, wc_matrix, mask=None, dropout=None, softmax_
     else:
         scores = scores * wc_matrix.unsqueeze(1) + (scores if residual else 0)
 
-    p_attn = scores.softmax(dim=-1) # (bs, h, N, N)
+    p_attn = scores.softmax(dim=-1)  # (bs, h, N, N)
 
     if dropout is not None:
         p_attn = dropout(p_attn)
 
-    a = torch.matmul(p_attn, value) # (bs, h, N, d_k)
+    a = torch.matmul(p_attn, value)  # (bs, h, N, d_k)
     return a, p_attn
 
 
 class WatsonCrickMultiHeadedAttention(nn.Module):
     batch_first = True
+
     def __init__(self, h, d_model, dropout=0.1):
         "Take in model size and number of heads."
         super(WatsonCrickMultiHeadedAttention, self).__init__()
@@ -67,18 +69,18 @@ class WatsonCrickMultiHeadedAttention(nn.Module):
             lin(x).view(nbatches, -1, self.h, self.d_k).transpose(1, 2)
             for lin, x in zip(self.linears, (query, key, value))
         ]
-        
+
         # 2) Apply attention on all the projected vectors in batch.
         x, self.attn = wc_attention(
             query, key, value, wc_matrix, mask=mask, dropout=self.dropout
-        ) # (bs, h, N, d_k), (bs, h, N, N)
+        )  # (bs, h, N, d_k), (bs, h, N, N)
 
         # 3) "Concat" using a view and apply a final linear.
         x = (
             x.transpose(1, 2)
             .contiguous()
             .view(nbatches, -1, self.h * self.d_k)
-        ) # (bs, N, d_model)
+        )  # (bs, N, d_model)
         del query
         del key
         del value
@@ -129,6 +131,7 @@ def build_wc_encoder(num_layers, num_frozen_layers, layer_cfg):
         d_model=layer_cfg['d_model'],
         h=layer_cfg['nhead'],
         d_ff=layer_cfg['dim_feedforward'],
-        dropout=layer_cfg['dropout']
+        dropout=layer_cfg['dropout'],
+        layer_norm_eps=layer_cfg['layer_norm_eps']
     )
     return nn.TransformerEncoder(encoder_layer=encoder_layer, num_layers=num_layers)
