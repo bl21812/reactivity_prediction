@@ -47,9 +47,6 @@ class RNAInputDataset(Dataset):
             )
             self.df['reactivity'] = reactivity_col
 
-        print(len(self.df))
-        print(len(self.df[self.df['sequence'].str.len() == self.df['reactivity'].str.len()]))
-
     def __len__(self):
         return len(self.df)
 
@@ -80,7 +77,7 @@ class RNAInputDataset(Dataset):
         # load, reactivities
         else:
             label = self.df['reactivity'].iloc[idx]
-            label += [0 for _ in range(pad_amount)]
+            label += [0 for _ in range(len(inp) - len(label))]
 
         # convert to tensor
         inp = torch.tensor(inp, dtype=torch.long)  # LongTensor for Embedding layer
