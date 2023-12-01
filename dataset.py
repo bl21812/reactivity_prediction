@@ -47,6 +47,9 @@ class RNAInputDataset(Dataset):
             )
             self.df['reactivity'] = reactivity_col
 
+        print(len(self.ds))
+        print(len(self.df[self.df['sequence'].str.len() == self.df['reactivity'].str.len()]))
+
     def __len__(self):
         return len(self.df)
 
