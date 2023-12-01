@@ -11,7 +11,7 @@ class Encoder(torch.nn.Module):
         if weights:
             # Load pretrained model
             pt_model = torch.load(weights)
-            self.embedding = None #pt_model.embedding
+            self.embedding = pt_model.embedding
             self.position_embedding = pt_model.position_embedding
             self.input_layer_norm = pt_model.input_layer_norm
             self.model = pt_model.model
