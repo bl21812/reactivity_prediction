@@ -47,7 +47,7 @@ class RNAInputDataset(Dataset):
             )
             self.df['reactivity'] = reactivity_col
 
-        print(self.df)
+        print(sub_df)
 
     def __len__(self):
         return len(self.df)
