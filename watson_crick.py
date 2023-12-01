@@ -91,9 +91,9 @@ class SublayerConnection(nn.Module):
     Note for code simplicity the norm is first as opposed to last.
     """
 
-    def __init__(self, size, dropout):
+    def __init__(self, size, dropout, layer_norm_eps):
         super(SublayerConnection, self).__init__()
-        self.norm = nn.LayerNorm(size)
+        self.norm = nn.LayerNorm(size, layer_norm_eps)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, sublayer):
@@ -104,7 +104,7 @@ class SublayerConnection(nn.Module):
 class WatsonCrickEncoderLayer(nn.Module):
     "Encoder is made up of self-attn and feed forward (defined below)"
 
-    def __init__(self, d_model, h, d_ff, dropout):
+    def __init__(self, d_model, h, d_ff, dropout, layer_norm_eps):
         super(WatsonCrickEncoderLayer, self).__init__()
         self.self_attn = WatsonCrickMultiHeadedAttention(h, d_model, dropout)
         self.ff = nn.Sequential(
@@ -113,7 +113,10 @@ class WatsonCrickEncoderLayer(nn.Module):
             nn.Dropout(dropout)
         )
 
-        self.sublayer = [SublayerConnection(d_model, dropout) for _ in range(2)]
+        self.sublayer = nn.ModuleList([
+            SublayerConnection(d_model, dropout, layer_norm_eps)
+            for _ in range(2)
+        ])
 
     def forward(self, x, mask):
         "Follow Figure 1 (left) for connections."
