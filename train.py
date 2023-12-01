@@ -121,6 +121,8 @@ if save:
 
     # save plots
     xs = [i+1 for i in range(epochs)]
-    plt.plot(xs, train_loss, color='b')
-    plt.plot(xs, val_loss, color='r')
+    plt.plot(xs, train_loss, color='b', label='train')
+    plt.plot(xs, val_loss, color='r', label='val')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
     plt.savefig(os.path.join(save, 'loss.png'))
