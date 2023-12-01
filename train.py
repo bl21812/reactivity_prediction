@@ -113,7 +113,7 @@ if save:
     if not os.path.exists(save):
         os.makedirs(save)
 
-    print('Saving to directory: {save}')
+    print(f'Saving to directory: {save}')
 
     # save model
     filename = 'model.pt'
