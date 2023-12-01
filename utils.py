@@ -106,8 +106,6 @@ def masked_mse(outputs, targets, mask):
     targets = torch.masked_select(targets, mask).float()
     loss = F.mse_loss(outputs, targets)
 
-    print(loss)
-
     return loss
 
 
