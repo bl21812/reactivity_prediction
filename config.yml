@@ -48,3 +48,6 @@ optuna:
       range_max: 0.3
     - name: 'some_other_param'
       type: 'bool'
+  train_epochs: 10
+  train_batch_size: 64
+  train_learning_rate: 0.001
