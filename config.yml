@@ -1,4 +1,4 @@
-pretrain: True
+pretrain: False
 device: 'cuda:0'
 
 data:
@@ -13,14 +13,14 @@ data:
 
 model:
   name: 'encoder'
-  weights: ''  # path to pretrained network (or none)
-  save: 'pretrain' # path to network saving location (or none)
+  weights: 'pretrain/20231130_222721/model.pt'  # path to pretrained network (or none)
+  save: 'finetune' # path to network saving location (or none)
   embedding_cfg:
     num_embeddings: 5  # dict size - should be 4 + padding token when using just RNA inputs
     embedding_dim: 64
   encoder:
     num_layers: 8
-    num_frozen_layers: 4 
+    num_frozen_layers: 6 
     layer_cfg:
       d_model: 64  # number of features - embedding dimension!
       nhead: 8  # tunable
@@ -33,5 +33,5 @@ model:
       bias: True
 
 training:
-  epochs: 2
-  lr: 1e-2
+  epochs: 30
+  lr: 1e-4
