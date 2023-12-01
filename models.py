@@ -1,10 +1,11 @@
+import math
 import torch
+import torch.nn as nn
 
 from embedding import SinusoidalPositionalEmbedding
 
 
 class Encoder(torch.nn.Module):
-
     def __init__(self, num_layers, layer_cfg, embedding_cfg, seq_length, weights=None, num_frozen_layers=0):
         super().__init__()
 
@@ -64,32 +65,3 @@ class Encoder(torch.nn.Module):
         x = self.output_norm(x)
         x = self.output(x)
         return torch.squeeze(x)
-
-
-
-class WatsonCrickAttentionLayer(torch.nn.Module):
-
-    def __init__(self, size, score_matrix):
-        super(WatsonCrickAttentionLayer, self).__init__()
-        self.size = size
-        self.score_matrix = torch.nn.Parameter(score_matrix, requires_grad=False)
-
-        # Linear Components
-        self.q_linear = torch.nn.Linear(size, size)
-        self.k_linear = torch.nn.Linear(size, size)
-        self.v_linear = torch.nn.Linear(size, size)
-
-    def forward(self, x):
-        # X = (batch_size, self.size)
-
-        # Apply linear components
-        q = self.q_linear(x)
-        k = self.k_linear(x)
-        v = self.v_linear(x)
-
-        # Calculate attention
-        score_attention = torch.matmul(q, k.transpose(-2, -1))
-        weights_attention = torch.nn.functional.softmax(score_attention, dim=-1)
-
-        # Output block
-        return torch.matmul(weights_attention, v)

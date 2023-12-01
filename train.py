@@ -12,7 +12,6 @@ from torch.utils.data import DataLoader
 
 from dataset import RNAInputDataset, BPPInputDataset
 from models import Encoder, WatsonCrickAttentionLayer
-from dataset import RNAInputDataset
 from utils import load_df_with_secondary_struct
 
 
