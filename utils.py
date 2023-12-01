@@ -100,6 +100,11 @@ def masked_mse(outputs, targets, mask):
     computes mse loss.
     @return: loss (tensor)
     """
+
+    print(outputs)
+    print(targets)
+    exit()
+    
     mask = ~mask
     outputs = torch.masked_select(outputs, mask).float()
     targets = torch.masked_select(targets, mask).float()
