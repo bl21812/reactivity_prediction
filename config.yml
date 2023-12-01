@@ -34,4 +34,4 @@ model:
 
 training:
   epochs: 30
-  lr: 1e-4
+  lr: 1e-6
