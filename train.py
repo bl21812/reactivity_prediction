@@ -113,6 +113,8 @@ if save:
     if not os.path.exists(save):
         os.makedirs(save)
 
+    print('Saving to directory: {save}')
+
     # save model
     filename = 'model.pt'
     torch.save(model, f=os.path.join(save, filename))
