@@ -41,6 +41,7 @@ class RNAInputDataset(Dataset):
         # put reactivities into one column if using them as labels
         if not pretrain:
             sub_df = self.df.filter(like='reactivity')
+            sub_df.fillna(value=0., inplace=True) # since some positions have no data
             reactivity_col = sub_df.apply(
                 lambda row: row.to_list(),
                 axis=1
@@ -77,7 +78,7 @@ class RNAInputDataset(Dataset):
         # load, reactivities
         else:
             label = self.df['reactivity'].iloc[idx]
-            label += [0 for _ in range(pad_amount)]
+            label += [0 for _ in range(len(inp) - len(label))]
 
         # convert to tensor
         inp = torch.tensor(inp, dtype=torch.long)  # LongTensor for Embedding layer
