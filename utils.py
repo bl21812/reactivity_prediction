@@ -80,7 +80,7 @@ def load_df_with_secondary_struct(df, secondary_df, sample_size=46):
     secondary_types_sample = [col for col in secondary_types if col in secondary_df.columns]
 
     # Unpivot the secondary frame
-    secondary_df = pd.melt(df, id_vars=['sequence'], value_vars=secondary_types_sample, value_name='secondary_struct')
+    secondary_df = pd.melt(secondary_df, id_vars=['sequence'], value_vars=secondary_types_sample, value_name='secondary_struct')
     secondary_df = secondary_df.dropna(subset=['secondary_struct'])
 
     # Merge the secondary column
