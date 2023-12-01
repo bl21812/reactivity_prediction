@@ -41,13 +41,12 @@ class RNAInputDataset(Dataset):
         # put reactivities into one column if using them as labels
         if not pretrain:
             sub_df = self.df.filter(like='reactivity')
+            subdf.fillna(value=0, inplace=True) # since some positions have no data
             reactivity_col = sub_df.apply(
                 lambda row: row.to_list(),
                 axis=1
             )
             self.df['reactivity'] = reactivity_col
-
-        print(sub_df)
 
     def __len__(self):
         return len(self.df)
