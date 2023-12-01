@@ -1,8 +1,8 @@
 import os
 import pandas as pd
 
-def load_df_with_secondary_struct(df, secondary_struct_df, secondary_struct_col='eterna_nupack'):
 
+def load_df_with_secondary_struct(df, secondary_struct_df, secondary_struct_col='eterna_nupack'):
     secondary_struct = []
     for idx, row in df.iterrows():
         seq = df['sequence']
