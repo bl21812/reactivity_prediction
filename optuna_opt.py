@@ -1,17 +1,36 @@
 import optuna
 import yaml
+from train import train_loader
+from utils import masked_mse, masked_cross_entropy, load_df_with_secondary_struct, test, train
+from torch.utils.data import DataLoader
+from dataset import RNAInputDataset
+from sklearn.model_selection import train_test_split
+import pandas as pd
+import torch.optim as optim
 
 # Load our optuna config from config file
-cfg = yaml.load(open('config.yml', 'r'), Loader=yaml.CLoader)['optuna']
-NUM_TRIALS = cfg['num_trials']
+cfg = yaml.load(open('config.yml', 'r'), Loader=yaml.CLoader)
+optuna_cfg = cfg['optuna']
+NUM_TRIALS = optuna_cfg['num_trials']
+EPOCHS = optuna_cfg['train_epochs']
+BATCH_SIZE = optuna_cfg['train_batch_size']
+LR = optuna_cfg['train_learning_rate']
 
-sampler = cfg['sampler']
+# Data loading config
+VAL_PROP = cfg['data']['val_prop']
+PRETRAIN = cfg['pretrain']
+DEVICE = cfg['device']
+SEQ_LENGTH = cfg['data']['seq_length']
+EXPERIMENT = cfg['data']['experiment']
+
+# Optuna Sampler and Pruner config
+sampler = optuna_cfg['sampler']
 if sampler == 'tpe':
     SAMPLER = optuna.samplers.TPESampler
 else:
     SAMPLER = None
 
-pruner = cfg['pruner']
+pruner = optuna_cfg['pruner']
 if pruner == 'hyperband':
     PRUNER = optuna.pruners.HyperbandPruner
 else:
@@ -24,10 +43,35 @@ study = optuna.create_study(
     pruner=PRUNER()
 )
 
+# Load train data
+df_raw = pd.read_csv(cfg['data']['paths']['df'])
+df_exp = df_raw[df_raw['experiment_type'] == EXPERIMENT]
 
-# Responsible for generating all the h-params we want to optimize
-def generate_trial_suggestion(trial):
-    param_cfgs = cfg['params']
+if PRETRAIN:
+    secondary_struct_df = pd.read_csv(cfg['data']['paths']['secondary_struct_df'])
+    df = load_df_with_secondary_struct(df_exp, secondary_struct_df)
+else:
+    df = df_exp
+
+df_train, df_val = train_test_split(df, test_size=VAL_PROP)
+ds_train = RNAInputDataset(df_train, pretrain=PRETRAIN, seq_length=SEQ_LENGTH, device=DEVICE)
+ds_val = RNAInputDataset(df_val, pretrain=PRETRAIN, seq_length=SEQ_LENGTH, device=DEVICE)
+train_loader = DataLoader(ds_train, batch_size=BATCH_SIZE, shuffle=True)
+val_loader = DataLoader(ds_val, batch_size=BATCH_SIZE, shuffle=True)
+
+
+def generate_trial_suggestion(trial) -> dict:
+    """
+        Generate trial suggestions for optuna hyperparameters tuning based on the yml config file.
+
+        Parameters:
+        - trial: An Optuna Trial object
+
+        Returns:
+        - trial_suggestions: A dictionary containing suggested hyperparameter values for the trial.
+    """
+
+    param_cfgs = optuna_cfg['params']
     trial_suggestions = {}
 
     for param_cfg in param_cfgs:
@@ -49,18 +93,61 @@ def generate_trial_suggestion(trial):
 
 
 # Builds a new model given a set of h-param values and evaluates the model
-def build_model_and_evaluate(optuna_suggestions, model_type="encoder"):
-    print(optuna_suggestions)
+def build_model_and_evaluate(optuna_suggestions, model_type="encoder") -> float:
+    """
+       Build a model with the given Optuna suggestions,
+       train the model, and evaluate its performance on the validation set.
+
+       Parameters:
+       - optuna_suggestions: A dictionary containing hyperparameter values from generate_trail_suggestion function.
+       - model_type: A string indicating the type of model to build ('encoder' or 'attention').
+
+       Returns:
+       - avg_val_loss: The average validation loss of the trained model.
+    """
+
+    model = None
     if model_type == 'encoder':
-        # Build encoder model and evaluate
-        # TODO: Add logic for creating model, and add training loop + evaluation
-        return 100
+        # TODO: Build a new encoder model with the optuna suggestions
+        model = None
+    else:
+        # TODO: build a new attention model with optuna suggestions
+        model = None
+
+    # Train the model
+    for epoch in range(EPOCHS):
+        train(
+            model=model,
+            data_loader=train_loader,
+            loss_fn=masked_mse if not PRETRAIN else masked_cross_entropy,
+            optimizer=optim.Adam(model.parameters(), lr=LR),
+            device=DEVICE
+        )
+
+    # Evaluate model
+    avg_val_loss = test(
+        model=model,
+        data_loader=val_loader,
+        loss_fn=masked_mse if not PRETRAIN else masked_cross_entropy,
+        device=DEVICE
+    )
+    return avg_val_loss
 
 
 def objective_function(trial):
+    """
+       Objective function for the Optuna optimization.
+
+       Parameters:
+       - trial: An Optuna Trial object.
+
+       Returns:
+       - avg_val_loss: The average validation loss of the model built with the trial suggestions.
+    """
+
     suggestions = generate_trial_suggestion(trial=trial)
-    acc = build_model_and_evaluate(optuna_suggestions=suggestions, model_type=cfg['model'])
-    return acc
+    avg_val_loss = build_model_and_evaluate(optuna_suggestions=suggestions, model_type=optuna_cfg['model'])
+    return avg_val_loss
 
 
 if __name__ == "__main__":
