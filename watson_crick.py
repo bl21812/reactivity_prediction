@@ -126,6 +126,17 @@ class WatsonCrickEncoderLayer(nn.Module):
         return self.sublayer[1](x, self.ff)
 
 
+class Encoder(nn.Module):
+    "Core encoder is a stack of N layers"
+    def __init__(self, layer, N):
+        super(Encoder, self).__init__()
+        self.layers = clones(layer, N)
+        self.norm = nn.LayerNorm(layer.size)
+
+    def forward(self, x, mask):
+        "Pass the input (and mask) through each layer in turn."
+        for layer in self.layers:                                                   x = layer(x, mask)                                                  return self.norm(x)
+
 def build_wc_encoder(num_layers, num_frozen_layers, layer_cfg):
     encoder_layer = WatsonCrickEncoderLayer(
         d_model=layer_cfg['d_model'],
@@ -134,4 +145,4 @@ def build_wc_encoder(num_layers, num_frozen_layers, layer_cfg):
         dropout=layer_cfg['dropout'],
         layer_norm_eps=layer_cfg['layer_norm_eps']
     )
-    return nn.TransformerEncoder(encoder_layer=encoder_layer, num_layers=num_layers)
+    return Encoder(encoder_layer=encoder_layer, num_layers=num_layers)
