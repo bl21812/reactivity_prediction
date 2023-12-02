@@ -1,12 +1,12 @@
 import optuna
 import yaml
-from train import train_loader
 from utils import masked_mse, masked_cross_entropy, load_df_with_secondary_struct, test, train
 from torch.utils.data import DataLoader
 from dataset import RNAInputDataset
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import torch.optim as optim
+from models import Encoder
 
 # Load our optuna config from config file
 cfg = yaml.load(open('config.yml', 'r'), Loader=yaml.CLoader)
@@ -14,7 +14,6 @@ optuna_cfg = cfg['optuna']
 NUM_TRIALS = optuna_cfg['num_trials']
 EPOCHS = optuna_cfg['train_epochs']
 BATCH_SIZE = optuna_cfg['train_batch_size']
-LR = optuna_cfg['train_learning_rate']
 
 # Data loading config
 VAL_PROP = cfg['data']['val_prop']
@@ -108,8 +107,17 @@ def build_model_and_evaluate(optuna_suggestions, model_type="encoder") -> float:
 
     model = None
     if model_type == 'encoder':
-        # TODO: Build a new encoder model with the optuna suggestions
-        model = None
+        weights = None if PRETRAIN else cfg['model']['weights']
+        model_cfg = cfg['model'][model_type]
+        embedding_cfg = cfg['model']['embedding_cfg']
+        model = Encoder(
+            embedding_cfg=embedding_cfg,
+            num_layers=model_cfg['num_layers'],
+            layer_cfg=model_cfg['layer_cfg'],
+            seq_length=SEQ_LENGTH,
+            weights=weights,
+            num_frozen_layers=optuna_suggestions['num_frozen_layers']
+        )
     else:
         # TODO: build a new attention model with optuna suggestions
         model = None
@@ -120,7 +128,7 @@ def build_model_and_evaluate(optuna_suggestions, model_type="encoder") -> float:
             model=model,
             data_loader=train_loader,
             loss_fn=masked_mse if not PRETRAIN else masked_cross_entropy,
-            optimizer=optim.Adam(model.parameters(), lr=LR),
+            optimizer=optim.Adam(model.parameters(), lr=optuna_suggestions['learning_rate']),
             device=DEVICE
         )
 
