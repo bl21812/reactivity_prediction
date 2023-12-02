@@ -20,7 +20,7 @@ model:
     embedding_dim: 64
   encoder:
     num_layers: 8
-    num_frozen_layers: 2
+    num_frozen_layers: 4
     layer_cfg:
       d_model: 64  # number of features - embedding dimension!
       nhead: 8  # tunable
@@ -34,4 +34,4 @@ model:
 
 training:
   epochs: 30
-  lr: 1e-5
+  lr: 1e-3
