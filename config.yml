@@ -1,10 +1,10 @@
-pretrain: True
-device: 'cuda:0'
+pretrain: False
+device: 'cpu'
 
 data:
   paths:
     df: 'data/secondary_data.csv'
-    secondary_struct_df: 'data/secondary_struct.csv'
+    secondary_struct_df: 'data/secondary_data.csv'
     bpp_files: 'data/Ribonanza_bpp_files/extra_data/'
   seq_length: 512  # pad to this length
   val_prop: 0.1
@@ -12,7 +12,7 @@ data:
   experiment: '2A3_MaP'
 
 model:
-  name: 'encoder'
+  name: 'attention'
   weights: ''  # path to pretrained network (or none)
   save: None # path to network saving location (or none)
   embedding_cfg:
@@ -31,6 +31,15 @@ model:
       batch_first: True
       norm_first: True  
       bias: True
+  attention:
+    num_layers: 8
+    num_frozen_layers: 4
+    layer_cfg:
+      d_model: 64
+      nhead: 8
+      dim_feedforward: 1024
+      dropout: 0.1
+      layer_norm_eps: 0.00001
 
 training:
   epochs: 3
