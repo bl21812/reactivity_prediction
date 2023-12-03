@@ -37,7 +37,7 @@ else:
 
 # Create the study
 study = optuna.create_study(
-    direction="maximize",
+    direction="minimize",
     sampler=SAMPLER(),
     pruner=PRUNER()
 )
