@@ -88,9 +88,15 @@ class RNAInputDataset(Dataset):
                 one_hot_label.append(temp)
             label = np.array(one_hot_label)
 
-        # load, reactivities
+        # load, reactivities sampled from distribution
         else:
-            label = self.df['reactivity'].iloc[idx]
+            means = self.df['reactivity'].iloc[idx]
+            errors = self.df['reactivity_error'].iloc[idx]
+
+            label = np.zeros(len(means))
+            for i in range(len(label)):
+                label[i] = np.random.normal(loc=means[i], scale=errors[i], size=1) # assume error is SE
+
             label += [0 for _ in range(len(inp) - len(label))]
 
         # convert to tensor
