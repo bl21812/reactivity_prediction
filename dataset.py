@@ -94,12 +94,13 @@ class RNAInputDataset(Dataset):
             errors = self.df['reactivity_error'].iloc[idx]
 
             label = np.zeros(len(means))
-            for i in range(len(label)):
+            for i in range(label.shape[0]):
                 if errors[i] < 1:
                     label[i] = np.random.normal(loc=means[i], scale=errors[i], size=1) # assume error is SE
                 else:
                     label[i] = means[i]
 
+            label = label.tolist()
             label += [0 for _ in range(len(inp) - len(label))]
 
         # convert to tensor
