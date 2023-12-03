@@ -95,7 +95,10 @@ class RNAInputDataset(Dataset):
 
             label = np.zeros(len(means))
             for i in range(len(label)):
-                label[i] = np.random.normal(loc=means[i], scale=errors[i], size=1) # assume error is SE
+                if errors[i] < 1:
+                    label[i] = np.random.normal(loc=means[i], scale=errors[i], size=1) # assume error is SE
+                else:
+                    label[i] = means[i]
 
             label += [0 for _ in range(len(inp) - len(label))]
 
