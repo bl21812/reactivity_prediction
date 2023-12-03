@@ -9,7 +9,7 @@ from torch.utils.data import Dataset
 # Dataset that uses only RNA sequence as input
 class RNAInputDataset(Dataset):
 
-    def __init__(self, df, pretrain=False, seq_length=512, device=None):
+    def __init__(self, df, pretrain=False, seq_length=512, snr_filter=False, device=None):
         '''
         df should contain secondary structure for pretrain!
         '''
@@ -37,6 +37,10 @@ class RNAInputDataset(Dataset):
             '}': 8,
             '>': 9
         }
+
+        # SNR filter columns only exists in train data
+        if snr_filter:
+            df = df[df['SNR_filter']].reset_index()
 
         # put reactivities into one column if using them as labels
         if not pretrain:
