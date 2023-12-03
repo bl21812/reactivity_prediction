@@ -77,8 +77,8 @@ else:
 df_train, df_val = train_test_split(df, test_size=val_prop)
 
 print("Loading RNA+Secondary Datasets..." if pretrain else "Loading RNA+Reactivity Datasets...")
-ds_train = RNAInputDataset(df_train, pretrain=pretrain, seq_length=seq_length, device=device)
-ds_val = RNAInputDataset(df_val, pretrain=pretrain, seq_length=seq_length, device=device)
+ds_train = RNAInputDataset(df_train, pretrain=pretrain, seq_length=seq_length, device=device, test=False)
+ds_val = RNAInputDataset(df_val, pretrain=pretrain, seq_length=seq_length, device=device, test=True)
 train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
 val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=True)
 
