@@ -44,7 +44,7 @@ class RNAInputDataset(Dataset):
 
         # put reactivities into one column if using them as labels
         if not pretrain:
-            sub_df = self.df.filter(like='reactivity')
+            sub_df = df.filter(items=['reactivity_'+"{:04d}".format(x) for x in range(1, seq_length)])
             sub_df.fillna(value=0., inplace=True) # since some positions have no data
             reactivity_col = sub_df.apply(
                 lambda row: row.to_list(),
