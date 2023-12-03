@@ -41,7 +41,7 @@ class RNAInputDataset(Dataset):
 
         # SNR filter columns only exists in train data
         if snr_filter:
-            self.df = self.df[self.df['SN_filter']].reset_index()
+            self.df = self.df[self.df['SN_filter'] == True].reset_index()
 
         # put reactivities into one column if using them as labels
         if not pretrain:
