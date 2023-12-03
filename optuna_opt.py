@@ -53,8 +53,8 @@ else:
     df = df_exp
 
 df_train, df_val = train_test_split(df, test_size=VAL_PROP)
-ds_train = RNAInputDataset(df_train, pretrain=PRETRAIN, seq_length=SEQ_LENGTH, device=DEVICE)
-ds_val = RNAInputDataset(df_val, pretrain=PRETRAIN, seq_length=SEQ_LENGTH, device=DEVICE)
+ds_train = RNAInputDataset(df_train, pretrain=PRETRAIN, seq_length=SEQ_LENGTH, snr_filter=True, device=DEVICE, test=False)
+ds_val = RNAInputDataset(df_val, pretrain=PRETRAIN, seq_length=SEQ_LENGTH, snr_filter=False, device=DEVICE, test=True)
 train_loader = DataLoader(ds_train, batch_size=BATCH_SIZE, shuffle=True)
 val_loader = DataLoader(ds_val, batch_size=BATCH_SIZE, shuffle=True)
 
