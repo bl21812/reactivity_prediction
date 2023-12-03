@@ -9,7 +9,7 @@ from torch.utils.data import Dataset
 # Dataset that uses only RNA sequence as input
 class RNAInputDataset(Dataset):
 
-    def __init__(self, df, pretrain=False, seq_length=512, snr_filter=False, device=None):
+    def __init__(self, df, pretrain=False, seq_length=512, snr_filter=False, device=None, test=False):
         '''
         df should contain secondary structure for pretrain!
         '''
@@ -18,6 +18,7 @@ class RNAInputDataset(Dataset):
         self.df = df
         self.pretrain = pretrain
         self.seq_length = seq_length
+        self.test = test
 
         self.rna_encode = {
             'A': 1,
@@ -52,14 +53,14 @@ class RNAInputDataset(Dataset):
             )
             self.df['reactivity'] = reactivity_col
 
-        # also put reactivity error into a column to adjust labels
-        err_df = self.df.filter(items=['reactivity_error_'+"{:04d}".format(x) for x in range(1, seq_length)])
-        err_df.fillna(value=0., inplace=True) # since some positions have no data
-        error_col = err_df.apply(
-            lambda row: row.to_list(),
-            axis=1
-        )
-        self.df['reactivity_error'] = error_col
+            # also put reactivity error into a column to adjust labels
+            err_df = self.df.filter(items=['reactivity_error_'+"{:04d}".format(x) for x in range(1, seq_length)])
+            err_df.fillna(value=0., inplace=True) # since some positions have no data
+            error_col = err_df.apply(
+                lambda row: row.to_list(),
+                axis=1
+            )
+            self.df['reactivity_error'] = error_col
 
     def __len__(self):
         return len(self.df)
@@ -93,14 +94,17 @@ class RNAInputDataset(Dataset):
             means = self.df['reactivity'].iloc[idx]
             errors = self.df['reactivity_error'].iloc[idx]
 
-            label = np.zeros(len(means))
-            for i in range(label.shape[0]):
-                if errors[i] < 1:
-                    label[i] = np.random.normal(loc=means[i], scale=errors[i], size=1) # assume error is SE
-                else:
-                    label[i] = means[i]
-
-            label = label.tolist()
+            if self.test:
+                label = means
+            else:
+                label = np.zeros(len(means))
+                for i in range(label.shape[0]):
+                    if errors[i] < 1:
+                        label[i] = np.random.normal(loc=means[i], scale=errors[i], size=1) # assume error is SE
+                    else:
+                        label[i] = means[i]
+                label = label.tolist()
+            
             label += [0 for _ in range(len(inp) - len(label))]
 
         # convert to tensor
