@@ -123,6 +123,7 @@ def build_model_and_evaluate(optuna_suggestions, model_type="encoder") -> float:
         model = None
 
     # Train the model
+    best_val_loss = 1000000
     for epoch in range(EPOCHS):
         train(
             model=model,
@@ -132,14 +133,15 @@ def build_model_and_evaluate(optuna_suggestions, model_type="encoder") -> float:
             device=DEVICE
         )
 
-    # Evaluate model
-    avg_val_loss = test(
-        model=model,
-        data_loader=val_loader,
-        loss_fn=masked_mse if not PRETRAIN else masked_cross_entropy,
-        device=DEVICE
-    )
-    return avg_val_loss
+        # Evaluate model
+        avg_val_loss = test(
+            model=model,
+            data_loader=val_loader,
+            loss_fn=masked_mse if not PRETRAIN else masked_cross_entropy,
+            device=DEVICE
+        )
+        best_val_loss = avg_val_loss if (avg_val_loss < best_val_loss) else best_val_loss
+    return best_val_loss
 
 
 def objective_function(trial):
@@ -154,8 +156,8 @@ def objective_function(trial):
     """
 
     suggestions = generate_trial_suggestion(trial=trial)
-    avg_val_loss = build_model_and_evaluate(optuna_suggestions=suggestions, model_type=optuna_cfg['model'])
-    return avg_val_loss
+    best_val_loss = build_model_and_evaluate(optuna_suggestions=suggestions, model_type=optuna_cfg['model'])
+    return best_val_loss
 
 
 if __name__ == "__main__":
