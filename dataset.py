@@ -52,6 +52,15 @@ class RNAInputDataset(Dataset):
             )
             self.df['reactivity'] = reactivity_col
 
+        # also put reactivity error into a column to adjust labels
+        err_df = self.df.filter(items=['reactivity_error_'+"{:04d}".format(x) for x in range(1, seq_length)])
+        err_df.fillna(value=0., inplace=True) # since some positions have no data
+        error_col = err_df.apply(
+            lambda row: row.to_list(),
+            axis=1
+        )
+        self.df['reactivity_error'] = error_col
+
     def __len__(self):
         return len(self.df)
 
