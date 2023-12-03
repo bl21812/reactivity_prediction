@@ -33,7 +33,7 @@ model:
       bias: True
 
 optuna:
-  num_trials: 5
+  num_trials: 7
   sampler: 'tpe'
   pruner: 'hyperband'
   model: 'encoder'
@@ -47,7 +47,7 @@ optuna:
       range_min: 0.0001
       range_max: 0.01
   train_epochs: 40
-  train_batch_size: 64
+  train_batch_size: 128
 
 training:
   epochs: 40
