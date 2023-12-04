@@ -50,5 +50,5 @@ optuna:
   train_batch_size: 128
 
 training:
-  epochs: 50
+  epochs: 40
   lr: 0.009730796984452821
