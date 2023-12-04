@@ -126,3 +126,17 @@ if save:
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.savefig(os.path.join(save, 'loss.png'))
+
+    # save plots separately
+    plt.clf()
+    plt.plot(xs, train_loss, color='b', label='train')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.savefig(os.path.join(save, 'train_loss.png'))
+
+    plt.clf()
+    plt.plot(xs, val_loss, color='r', label='val')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.savefig(os.path.join(save, 'val_loss.png'))
+
