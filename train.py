@@ -5,6 +5,7 @@ import torch
 import torch.optim as optim
 import utils
 import yaml
+from copy import deepcopy
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
@@ -83,6 +84,8 @@ train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
 val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=True)
 
 print("Training model...")
+best_val_loss = 1000000
+best_model = None
 for epoch in range(epochs):    
     avg_train_loss = utils.train(
         model=model, 
@@ -102,6 +105,10 @@ for epoch in range(epochs):
     train_loss.append(avg_train_loss)
     val_loss.append(avg_val_loss)
 
+    if avg_val_loss < best_val_loss:
+        best_val_loss = avg_val_loss
+        best_model = deepcopy(model)
+
     print(f"Epoch {epoch + 1}:".ljust(16), f"Train Loss: {avg_train_loss:.4f}".rjust(20), f"Validation Loss: {avg_val_loss:.4f}".rjust(20))
 
 # ----- SAVE MODEL -----
@@ -117,8 +124,11 @@ if save:
 
     # save model
     filename = 'model.pt'
-    torch.save(model, f=os.path.join(save, filename))
-
+    if best_model:
+        torch.save(best_model, f=os.path.join(save, filename))
+    else:
+        torch.save(model, f=os.path.join(save, filename))
+        
     # save plots
     xs = [i+1 for i in range(epochs)]
     plt.plot(xs, train_loss, color='b', label='train')
