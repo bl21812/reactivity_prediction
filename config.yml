@@ -9,7 +9,7 @@ data:
   seq_length: 512  # pad to this length
   val_prop: 0.1
   batch_size: 128
-  experiment: '2A3_MaP'
+  experiment: 'DMS_MaP'
 
 model:
   name: 'encoder'
