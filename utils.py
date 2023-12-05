@@ -131,10 +131,14 @@ def train(model, data_loader, loss_fn, optimizer, device):
     model.train()  # Set model in training mode
     
     total_loss = 0
-    for (inputs, targets, mask) in tqdm(data_loader):
+    for (inputs, targets, mask, wc_matrix) in tqdm(data_loader):
         optimizer.zero_grad()
-        inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
-        outputs = model(inputs, mask)
+        # inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
+        if wc_matrix is not None:
+            outputs = model(inputs, mask, wc_matrix)
+        else:
+            outputs = model(inputs, mask)
+
         loss = loss_fn(outputs, targets, mask)
         loss.backward()
         optimizer.step()
@@ -149,10 +153,15 @@ def test(model, data_loader, loss_fn, device):
     model = model.to(device)
 
     total_loss = 0
-    for (inputs, targets, mask) in tqdm(data_loader):
+    for (inputs, targets, mask, wc_matrix) in tqdm(data_loader):
         with torch.no_grad():
-            inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
-            outputs = model(inputs, mask)
+            # inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
+
+            if wc_matrix is not None:
+                outputs = model(inputs, mask, wc_matrix)
+            else:
+                outputs = model(inputs, mask)
+
             loss = loss_fn(outputs, targets, mask)
     
             total_loss += loss.item()

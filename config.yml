@@ -1,9 +1,9 @@
 pretrain: False
-device: 'cpu'
+device: 'cuda:0'
 
 data:
   paths:
-    df: 'data/secondary_data.csv'
+    df: 'data/train_data_QUICK_START.csv'
     secondary_struct_df: 'data/secondary_data.csv'
     bpp_files: 'data/Ribonanza_bpp_files/extra_data/'
   seq_length: 512  # pad to this length
@@ -12,7 +12,7 @@ data:
   experiment: '2A3_MaP'
 
 model:
-  name: 'attention'
+  name: 'watson_crick'
   weights: ''  # path to pretrained network (or none)
   save: None # path to network saving location (or none)
   embedding_cfg:
@@ -31,7 +31,7 @@ model:
       batch_first: True
       norm_first: True  
       bias: True
-  attention:
+  watson_crick:
     num_layers: 8
     num_frozen_layers: 4
     layer_cfg:

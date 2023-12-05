@@ -4,6 +4,8 @@ import copy
 import torch
 import torch.nn as nn
 
+from models import Encoder
+
 
 def wc_attention(query, key, value, wc_matrix, mask=None, dropout=None, softmax_wc=True, residual=True):
     """ Same as 'Scaled Dot Product Attention', except we
@@ -18,8 +20,10 @@ def wc_attention(query, key, value, wc_matrix, mask=None, dropout=None, softmax_
 
     scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)
 
+    print(query.shape, scores.shape, wc_matrix.shape, mask.shape)
+
     if mask is not None:
-        scores = scores.masked_fill(mask == 0, -1e9)
+        scores = scores.masked_fill(mask.unsqueeze(1).to('cuda:0') == 0, -1e9)
 
     if softmax_wc:
         scores = scores * wc_matrix.unsqueeze(1).softmax(dim=-1) + (scores if residual else 0)
@@ -108,12 +112,13 @@ class SublayerConnection(nn.Module):
 class WatsonCrickEncoderLayer(nn.Module):
     "Encoder is made up of self-attn and feed forward (defined below)"
 
-    def __init__(self, d_model, h, d_ff, dropout, layer_norm_eps):
+    def __init__(self, d_model, nhead, dim_feedforward, dropout, layer_norm_eps):
         super(WatsonCrickEncoderLayer, self).__init__()
-        self.self_attn = WatsonCrickMultiHeadedAttention(h, d_model, dropout)
+        self.d_model = d_model
+        self.self_attn = WatsonCrickMultiHeadedAttention(nhead, d_model, dropout)
         self.ff = nn.Sequential(
-            nn.Linear(d_model, d_ff),
-            nn.Linear(d_ff, d_model),
+            nn.Linear(d_model, dim_feedforward),
+            nn.Linear(dim_feedforward, d_model),
             nn.Dropout(dropout)
         )
 
@@ -132,7 +137,7 @@ class WatsonCrickTransformerEncoder(nn.Module):
     def __init__(self, encoder_layer, num_layers):
         super(WatsonCrickTransformerEncoder, self).__init__()
         self.layers = nn.ModuleList([copy.deepcopy(encoder_layer) for _ in range(num_layers)])
-        self.norm = nn.LayerNorm(encoder_layer.size)
+        self.norm = nn.LayerNorm(encoder_layer.d_model)
 
     def forward(self, x, wc_matrix, mask):
         "Pass the input (and mask) through each layer in turn."
@@ -141,11 +146,35 @@ class WatsonCrickTransformerEncoder(nn.Module):
         return self.norm(x)
 
 
-class WatsonCrickEncoder(torch.nn.Module):
+class WatsonCrickEncoder(Encoder):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     @property
     def encoder_layer_type(self):
         return WatsonCrickEncoderLayer
 
     @property
     def encoder_type(self):
-        return WatsonCrickEncoder
+        return WatsonCrickTransformerEncoder
+
+    def forward(self, x, pad_mask, wc_matrix):
+
+        # pretrained model will have embedding layers
+        if not self.embedding:
+            x = self.model(x, wc_matrix, pad_mask)
+
+        else:
+            # embedding
+            embeddings = self.embedding(x)
+            position_embeddings = self.position_embedding(x.shape)
+            x = embeddings + position_embeddings
+            x = self.input_layer_norm(x)
+
+            # transformer layers
+            x = self.model(x, wc_matrix, pad_mask)
+
+        # output block
+        x = self.output_norm(x)
+        x = self.output(x)
+        return torch.squeeze(x)

@@ -9,10 +9,9 @@ import yaml
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
-from dataset import RNAInputDataset, BPPInputDataset
+from dataset import RNAInputDataset
 from models import Encoder
 from watson_crick import WatsonCrickEncoder
-from watson_crick import build_wc_encoder
 from utils import load_df_with_secondary_struct
 
 # ----- LOAD CONFIG -----
@@ -76,8 +75,18 @@ else:
 df_train, df_val = train_test_split(df, test_size=val_prop)
 
 print("Loading RNA+Secondary Datasets..." if pretrain else "Loading RNA+Reactivity Datasets...")
-ds_train = RNAInputDataset(df_train, pretrain=pretrain, seq_length=seq_length, device=device)
-ds_val = RNAInputDataset(df_val, pretrain=pretrain, seq_length=seq_length, device=device)
+ds_train = RNAInputDataset(
+    df_train, pretrain=pretrain,
+    seq_length=seq_length, device=device,
+    watson_crick=model_type == 'watson_crick',
+    wc_dir=cfg['data']['paths']['bpp_files']
+)
+ds_val = RNAInputDataset(
+    df_val, pretrain=pretrain,
+    seq_length=seq_length, device=device,
+    watson_crick=model_type == 'watson_crick',
+    wc_dir=cfg['data']['paths']['bpp_files']
+)
 train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
 val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=True)
 
