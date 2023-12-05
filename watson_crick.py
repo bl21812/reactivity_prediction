@@ -1,4 +1,6 @@
 import math
+import copy
+
 import torch
 import torch.nn as nn
 
@@ -34,7 +36,7 @@ def wc_attention(query, key, value, wc_matrix, mask=None, dropout=None, softmax_
 
 
 class WatsonCrickMultiHeadedAttention(nn.Module):
-    batch_first = True
+    # batch_first = True
 
     def __init__(self, h, d_model, dropout=0.1):
         "Take in model size and number of heads."
@@ -120,29 +122,30 @@ class WatsonCrickEncoderLayer(nn.Module):
             for _ in range(2)
         ])
 
-    def forward(self, x, mask):
-        "Follow Figure 1 (left) for connections."
-        x = self.sublayer[0](x, lambda x: self.self_attn(x, x, x, mask))
+    def forward(self, x, wc_matrix, mask):
+        x = self.sublayer[0](x, lambda x: self.self_attn(x, x, x, wc_matrix, mask))
         return self.sublayer[1](x, self.ff)
 
 
-class Encoder(nn.Module):
+class WatsonCrickTransformerEncoder(nn.Module):
     "Core encoder is a stack of N layers"
-    def __init__(self, layer, N):
-        super(Encoder, self).__init__()
-        self.layers = clones(layer, N)
-        self.norm = nn.LayerNorm(layer.size)
+    def __init__(self, encoder_layer, num_layers):
+        super(WatsonCrickTransformerEncoder, self).__init__()
+        self.layers = nn.ModuleList([copy.deepcopy(encoder_layer) for _ in range(num_layers)])
+        self.norm = nn.LayerNorm(encoder_layer.size)
 
-    def forward(self, x, mask):
+    def forward(self, x, wc_matrix, mask):
         "Pass the input (and mask) through each layer in turn."
-        for layer in self.layers:                                                   x = layer(x, mask)                                                  return self.norm(x)
+        for layer in self.layers:
+            x = layer(x, wc_matrix, mask)
+        return self.norm(x)
 
-def build_wc_encoder(num_layers, num_frozen_layers, layer_cfg):
-    encoder_layer = WatsonCrickEncoderLayer(
-        d_model=layer_cfg['d_model'],
-        h=layer_cfg['nhead'],
-        d_ff=layer_cfg['dim_feedforward'],
-        dropout=layer_cfg['dropout'],
-        layer_norm_eps=layer_cfg['layer_norm_eps']
-    )
-    return Encoder(encoder_layer=encoder_layer, num_layers=num_layers)
+
+class WatsonCrickEncoder(torch.nn.Module):
+    @property
+    def encoder_layer_type(self):
+        return WatsonCrickEncoderLayer
+
+    @property
+    def encoder_type(self):
+        return WatsonCrickEncoder

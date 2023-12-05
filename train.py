@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader
 
 from dataset import RNAInputDataset, BPPInputDataset
 from models import Encoder
+from watson_crick import WatsonCrickEncoder
 from watson_crick import build_wc_encoder
 from utils import load_df_with_secondary_struct
 
@@ -36,20 +37,21 @@ weights = None if pretrain else cfg['model']['weights']
 model_cfg = cfg['model'][model_type]
 embedding_cfg = cfg['model']['embedding_cfg']
 print(f"Building Model ({model_type})...")
+
 if model_type == 'encoder':
-    model = Encoder(
-        embedding_cfg=embedding_cfg,
-        num_layers=model_cfg['num_layers'],
-        layer_cfg=model_cfg['layer_cfg'],
-        seq_length=seq_length,
-        weights=weights,
-    )
-elif model_type == "attention":
-    model = build_wc_encoder(
-        num_layers=model_cfg['num_layers'],
-        layer_cfg=model_cfg['layer_cfg'],
-        num_frozen_layers=model_cfg['num_frozen_layers']
-    )
+    encoder_type = Encoder
+elif model_type == 'watson_crick':
+    encoder_type = WatsonCrickEncoder
+else:
+    raise NotImplementedError()
+
+model = encoder_type(
+    embedding_cfg=embedding_cfg,
+    num_layers=model_cfg['num_layers'],
+    layer_cfg=model_cfg['layer_cfg'],
+    seq_length=seq_length,
+    weights=weights,
+)
 
 # ----- LOAD + TRAIN LOOP -----
 

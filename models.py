@@ -35,14 +35,22 @@ class Encoder(torch.nn.Module):
             )
             self.input_layer_norm = torch.nn.LayerNorm(layer_cfg['d_model'])
 
-            encoder_layer = torch.nn.TransformerEncoderLayer(**layer_cfg)
-            self.model = torch.nn.TransformerEncoder(encoder_layer=encoder_layer, num_layers=num_layers)
+            encoder_layer = self.encoder_layer_type(**layer_cfg)
+            self.model = self.encoder_type(encoder_layer=encoder_layer, num_layers=num_layers)
 
         self.output_norm = torch.nn.LayerNorm(layer_cfg['d_model'])
 
         # Labels are one-hot encodings for pretrain, but floats for finetune
         output_dim = 1 if weights else 9
         self.output = torch.nn.Linear(layer_cfg['d_model'], output_dim)
+
+    @property
+    def encoder_layer_type(self):
+        return torch.nn.TransformerEncoderLayer
+
+    @property
+    def encoder_type(self):
+        return torch.nn.TransformerEncoder
 
     def forward(self, x, pad_mask):
 
