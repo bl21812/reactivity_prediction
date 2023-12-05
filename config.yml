@@ -1,29 +1,54 @@
-pretrain: True
+pretrain: False
 device: 'cuda:0'
 
 data:
   paths:
-    df: 'data/train.csv'
+    df: 'data/secondary_data.csv'
     secondary_struct_df: 'data/secondary_struct.csv'
-  seq_length: None  # pad to this length
+    bpp_files: 'data/Ribonanza_bpp_files/extra_data/'
+  seq_length: 512  # pad to this length
   val_prop: 0.1
-  batch_size: 64
+  batch_size: 128
+  experiment: 'DMS_MaP'
 
 model:
   name: 'encoder'
-  weights: ''  # path to pretrained network (or none)
+  weights: 'pretrain/20231130_222721/model.pt'  # path to pretrained network (or none)
+  save: 'finetune' # path to network saving location (or none)
   embedding_cfg:
     num_embeddings: 5  # dict size - should be 4 + padding token when using just RNA inputs
     embedding_dim: 64
   encoder:
-    num_layers: 6
+    num_layers: 8
+    num_frozen_layers: 5
     layer_cfg:
-      d_model: None  # number of features - embedding dimension!
+      d_model: 64  # number of features - embedding dimension!
       nhead: 8  # tunable
       dim_feedforward: 1024  # tunable
       dropout: 0.1  # tunable
       activation: 'gelu'
-      layer_norm_eps: 1e-5  # default
+      layer_norm_eps: 0.00001  # default
       batch_first: True
       norm_first: True  
       bias: True
+
+optuna:
+  num_trials: 7
+  sampler: 'tpe'
+  pruner: 'hyperband'
+  model: 'encoder'
+  params:
+    - name: 'num_frozen_layers'
+      type: 'int'
+      range_min: 0
+      range_max: 8
+    - name: 'learning_rate'
+      type: 'float'
+      range_min: 0.0001
+      range_max: 0.01
+  train_epochs: 40
+  train_batch_size: 128
+
+training:
+  epochs: 40
+  lr: 0.009730796984452821
