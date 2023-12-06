@@ -1,6 +1,8 @@
 # project
 data/
 stanford-ribonanza-rna-folding.zip
+archive/
+out/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

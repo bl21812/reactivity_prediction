@@ -15,27 +15,25 @@ def wc_attention(query, key, value, wc_matrix, mask=None, dropout=None, softmax_
     wc_matrix (Tensor): (bs, N, N)
 
     """
-
     d_k = query.size(-1)
 
     scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)
 
-    print(query.shape, scores.shape, wc_matrix.shape, mask.shape)
-
     if mask is not None:
-        scores = scores.masked_fill(mask.unsqueeze(1).to('cuda:0') == 0, -1e9)
+        scores = scores.masked_fill(mask == 0, -1e9)
 
-    if softmax_wc:
-        scores = scores * wc_matrix.unsqueeze(1).softmax(dim=-1) + (scores if residual else 0)
-    else:
-        scores = scores * wc_matrix.unsqueeze(1) + (scores if residual else 0)
+    if not isinstance(wc_matrix, list):
+        if softmax_wc:
+            scores = scores * wc_matrix.softmax(dim=-1) + (scores if residual else 0)
+        else:
+            scores = scores * wc_matrix + (scores if residual else 0)
 
     p_attn = scores.softmax(dim=-1)  # (bs, h, N, N)
 
     if dropout is not None:
         p_attn = dropout(p_attn)
 
-    a = torch.matmul(p_attn, value)  # (bs, h, N, d_k)
+    a = torch.matmul(p_attn.to(torch.float32), value)  # (bs, h, N, d_k)
     return a, p_attn
 
 
@@ -134,15 +132,16 @@ class WatsonCrickEncoderLayer(nn.Module):
 
 class WatsonCrickTransformerEncoder(nn.Module):
     "Core encoder is a stack of N layers"
-    def __init__(self, encoder_layer, num_layers):
+    def __init__(self, encoder_layer, num_layers, wc_layers=2):
         super(WatsonCrickTransformerEncoder, self).__init__()
+        self.wc_layers = wc_layers
         self.layers = nn.ModuleList([copy.deepcopy(encoder_layer) for _ in range(num_layers)])
         self.norm = nn.LayerNorm(encoder_layer.d_model)
 
     def forward(self, x, wc_matrix, mask):
         "Pass the input (and mask) through each layer in turn."
-        for layer in self.layers:
-            x = layer(x, wc_matrix, mask)
+        for i, layer in enumerate(self.layers):
+            x = layer(x, wc_matrix, mask) if i < self.wc_layers else layer(x, [], mask)
         return self.norm(x)
 
 
@@ -159,11 +158,9 @@ class WatsonCrickEncoder(Encoder):
         return WatsonCrickTransformerEncoder
 
     def forward(self, x, pad_mask, wc_matrix):
-
         # pretrained model will have embedding layers
         if not self.embedding:
             x = self.model(x, wc_matrix, pad_mask)
-
         else:
             # embedding
             embeddings = self.embedding(x)

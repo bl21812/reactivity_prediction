@@ -41,7 +41,7 @@ class Encoder(torch.nn.Module):
         self.output_norm = torch.nn.LayerNorm(layer_cfg['d_model'])
 
         # Labels are one-hot encodings for pretrain, but floats for finetune
-        output_dim = 1 if weights else 9
+        output_dim = 1
         self.output = torch.nn.Linear(layer_cfg['d_model'], output_dim)
 
     @property
@@ -71,4 +71,4 @@ class Encoder(torch.nn.Module):
         # output block
         x = self.output_norm(x)
         x = self.output(x)
-        return torch.squeeze(x)
+        return x.unsqueeze(-1)

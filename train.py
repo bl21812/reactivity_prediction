@@ -6,6 +6,9 @@ import torch.optim as optim
 import utils
 import yaml
 
+import matplotlib.pyplot as plt
+from copy import deepcopy
+
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
@@ -79,21 +82,25 @@ ds_train = RNAInputDataset(
     df_train, pretrain=pretrain,
     seq_length=seq_length, device=device,
     watson_crick=model_type == 'watson_crick',
-    wc_dir=cfg['data']['paths']['bpp_files']
+    wc_dir=cfg['data']['paths']['bpp_files'],
+    do_wc=cfg['data'].get('do_wc', True)
 )
 ds_val = RNAInputDataset(
     df_val, pretrain=pretrain,
     seq_length=seq_length, device=device,
     watson_crick=model_type == 'watson_crick',
-    wc_dir=cfg['data']['paths']['bpp_files']
+    wc_dir=cfg['data']['paths']['bpp_files'],
+    do_wc=cfg['data'].get('do_wc', True)
 )
 train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
 val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=True)
 
 print("Training model...")
-for epoch in range(epochs):
+best_val_loss = 1000000
+best_model = None
+for epoch in range(epochs):    
     avg_train_loss = utils.train(
-        model=model,
+        model=model, 
         data_loader=train_loader,
         loss_fn=loss_fn,
         optimizer=optimizer,
@@ -110,11 +117,50 @@ for epoch in range(epochs):
     train_loss.append(avg_train_loss)
     val_loss.append(avg_val_loss)
 
-    print(f"Epoch {epoch + 1}:".ljust(16), f"Train Loss: {avg_train_loss:.4f}".rjust(20),
-          f"Validation Loss: {avg_val_loss:.4f}".rjust(20))
+    with open("epoch.csv", "a+") as file:
+        file.write(f"{avg_train_loss},{avg_val_loss}\n")
+
+    if avg_val_loss < best_val_loss:
+        best_val_loss = avg_val_loss
+        best_model = deepcopy(model)
+
+    print(f"Epoch {epoch + 1}:".ljust(16), f"Train Loss: {avg_train_loss:.4f}".rjust(20), f"Validation Loss: {avg_val_loss:.4f}".rjust(20))
 
 # ----- SAVE MODEL -----
 
 if save:
-    filename = model_type + '_' + time.strftime("%Y%m%d_%H%M%S") + '.pt'
-    torch.save(model, f=os.path.join(save, filename))
+
+    save = os.path.join(save, time.strftime("%Y%m%d_%H%M%S"))
+
+    if not os.path.exists(save):
+        os.makedirs(save)
+
+    print(f'Saving to directory: {save}')
+
+    # save model
+    filename = 'model.pt'
+    if best_model:
+        torch.save(best_model, f=os.path.join(save, filename))
+    else:
+        torch.save(model, f=os.path.join(save, filename))
+
+    # save plots
+    xs = [i+1 for i in range(epochs)]
+    plt.plot(xs, train_loss, color='b', label='train')
+    plt.plot(xs, val_loss, color='r', label='val')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.savefig(os.path.join(save, 'loss.png'))
+
+    # save plots separately
+    plt.clf()
+    plt.plot(xs, train_loss, color='b', label='train')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.savefig(os.path.join(save, 'train_loss.png'))
+
+    plt.clf()
+    plt.plot(xs, val_loss, color='r', label='val')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.savefig(os.path.join(save, 'val_loss.png'))

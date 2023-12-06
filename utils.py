@@ -100,6 +100,7 @@ def masked_mse(outputs, targets, mask):
     computes mse loss.
     @return: loss (tensor)
     """
+    outputs = outputs.unsqueeze(-1)
     mask = ~mask
     outputs = torch.masked_select(outputs, mask).float()
     targets = torch.masked_select(targets, mask).float()
@@ -113,7 +114,6 @@ def masked_cross_entropy(outputs, targets, mask):
     computes cross entropy loss.
     @return: loss (tensor)
     """
-
     if outputs.dim() > mask.dim():
         mask = mask.unsqueeze(-1).repeat(1, 1, outputs.size()[-1])
     
@@ -140,6 +140,10 @@ def train(model, data_loader, loss_fn, optimizer, device):
             outputs = model(inputs, mask)
 
         loss = loss_fn(outputs, targets, mask)
+
+        with open("train.csv", "a+") as file:
+            file.write(f"{loss}\n")
+
         loss.backward()
         optimizer.step()
 
@@ -149,7 +153,6 @@ def train(model, data_loader, loss_fn, optimizer, device):
     return final_loss
 
 def test(model, data_loader, loss_fn, device):
-    
     model = model.to(device)
 
     total_loss = 0
@@ -163,7 +166,7 @@ def test(model, data_loader, loss_fn, device):
                 outputs = model(inputs, mask)
 
             loss = loss_fn(outputs, targets, mask)
-    
+
             total_loss += loss.item()
 
     final_loss = total_loss / len(data_loader)
